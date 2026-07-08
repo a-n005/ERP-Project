@@ -111,43 +111,5 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt;
         }
-
-        /// <summary>
-        /// جلب الأصناف والتفاصيل الخاصة بفاتورة مشتريات محددة عبر الـ InvoiceID
-        /// </summary>
-        public static DataTable GetPurchaseInvoiceDetails(int invoiceID, out string errorMessage)
-        {
-            DataTable dt = new DataTable();
-            errorMessage = string.Empty;
-
-            // استعلام يجلب الأصناف التابعة للفاتورة مع اسم الصنف وكوده من جدول المنتجات
-            string query = @"SELECT PID.ProductID, P.ProductCode, P.ProductName, PID.Quantity, PID.UnitPrice, 
-                            (PID.Quantity * PID.UnitPrice) AS TotalLine
-                     FROM PurchaseInvoiceDetails PID
-                     INNER JOIN Products P ON PID.ProductID = P.ProductID
-                     WHERE PID.InvoiceID = @InvoiceID";
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@InvoiceID", invoiceID);
-
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.HasRows) dt.Load(reader);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        errorMessage = "خطأ أثناء جلب تفاصيل الفاتورة: " + ex.Message;
-                    }
-                }
-            }
-            return dt;
-        }
     }
 }

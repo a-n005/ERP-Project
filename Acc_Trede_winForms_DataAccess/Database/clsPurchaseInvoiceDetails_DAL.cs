@@ -20,7 +20,7 @@ namespace Acc_Trede_winForms_DataAccess.Database
 
             // استعلام يجلب تفاصيل الأصناف مع جلب اسم المنتج وكوده للواجهات
             string query = @"SELECT D.InvoiceDetailID, D.InvoiceID, D.ProductID, 
-                                    P.ProductCode, P.ProductName, D.Quantity, D.UnitPrice,
+                                    P.Barcode, P.ProductName, D.Quantity, D.UnitPrice,
                                     (D.Quantity * D.UnitPrice) AS TotalLinePrice
                              FROM PurchaseInvoiceDetails D
                              INNER JOIN Products P ON D.ProductID = P.ProductID
