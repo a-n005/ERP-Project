@@ -79,5 +79,11 @@
   <ItemGroup>
     <Folder Include="jn\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Acc_Trede_winForms_Buisness\Acc_Trede_winForms_Buisness.csproj">
+      <Project>{b2ebead5-2717-4035-8c5c-9d618c2372ed}</Project>
+      <Name>Acc_Trede_winForms_Buisness</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
