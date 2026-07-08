@@ -48,7 +48,9 @@
   <ItemGroup>
     <Compile Include="clsCustomers_DAL.cs" />
     <Compile Include="clsDataAccessSettings.cs" />
+    <Compile Include="clsFinancialTransactions_DAL.cs" />
     <Compile Include="clsProducts_DAL.cs" />
+    <Compile Include="clsPurchaseInvoices_DAL.cs" />
     <Compile Include="clsSuppliers_DAL.cs" />
     <Compile Include="clsUsers_DAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -71,5 +73,42 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Database\Root\Acc_Trede.Database.sql" />
+    <Content Include="Database\Schema\Tables\dbo.Customers.Table.sql" />
+    <Content Include="Database\Schema\Tables\dbo.FinancialTransactions.Table.sql" />
+    <Content Include="Database\Schema\Tables\dbo.Products.Table.sql" />
+    <Content Include="Database\Schema\UserTypes\dbo.PurchaseCartType.UserDefinedTableType.sql" />
+    <Content Include="Database\Schema\Tables\dbo.PurchaseInvoiceDetails.Table.sql" />
+    <Content Include="Database\Schema\Tables\dbo.PurchaseInvoices.Table.sql" />
+    <Content Include="Database\Schema\UserTypes\dbo.SalesCartType.UserDefinedTableType.sql" />
+    <Content Include="Database\Schema\Tables\dbo.SalesInvoiceDetails.Table.sql" />
+    <Content Include="Database\Schema\Tables\dbo.SalesInvoices.Table.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_ChangeUserPassword.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_DeleteCustomer.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_DeleteSupplier.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_DeleteUserSoft.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_GetCreditorSuppliers.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_GetDebtorCustomers.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_GetLowStockProducts.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertCustomer.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertPaymentVoucher.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertProduct.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertPurchaseInvoice.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertReceiptVoucher.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertSalesInvoice.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_InsertSupplier.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_RegisterUser.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_UpdateCustomer.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_UpdateProduct.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_UpdateSupplier.StoredProcedure.sql" />
+    <Content Include="Database\StoredProcedures\dbo.sp_UpdateUser.StoredProcedure.sql" />
+    <Content Include="Database\Schema\Tables\dbo.Suppliers.Table.sql" />
+    <Content Include="Database\Schema\Tables\dbo.Users.Table.sql" />
+    <Content Include="Database\Schema\Views\dbo.v_BoxMovementReport.View.sql" />
+    <Content Include="Database\Schema\Views\dbo.v_CustomerStatement.View.sql" />
+    <Content Include="Database\Schema\Views\dbo.v_SalesProfitReport.View.sql" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
