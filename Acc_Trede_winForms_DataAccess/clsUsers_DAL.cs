@@ -18,7 +18,7 @@ namespace Acc_Trede_winForms_DataAccess
             errorMessage = string.Empty;
             DataTable dt = new DataTable();
 
-            string query = @"SELECT UserID, Username, Permissions, FullName, IsActive 
+            string query = @"SELECT * 
                      FROM Users 
                      WHERE Username = @Username AND PasswordHash = @PasswordHash";
 
@@ -45,12 +45,8 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt; // ترجع الجدول والـ BLL هو من سيتصرف به لاحقاً!
         }
-
-        /// <summary>
-        /// إضافة مستخدم جديد للنظام
-        /// </summary>
-        public static int RegisterUser(string username, string passwordHash, int permissions, string fullName,
-            string phone, bool isActive, out string errMsg)
+        public static int AddNewUser(string username, string passwordHash, int permissions, string fullName,
+            out string errMsg, string phone = null)
         {
             int newUserID = -1;
             errMsg = string.Empty;
@@ -68,7 +64,6 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@Permissions", permissions);
                     cmd.Parameters.AddWithValue("@FullName", fullName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@IsActive", isActive);
 
                     try
                     {
@@ -89,16 +84,11 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return newUserID; // يعيد المعرف التلقائي الجديد للمستخدم
         }
-
-        /// <summary>
-        /// جلب جميع المستخدمين لعرضهم في الـ DataGrid داخل الـ WPF
-        /// </summary>
         public static DataTable GetAllUsers(out string errorMessage)
         {
             errorMessage = string.Empty;
             DataTable dt = new DataTable();
-            string query = "SELECT UserID, Username, Permissions, FullName, Phone," +
-                " IsActive, CreatedAt FROM Users";
+            string query = "SELECT * FROM Users";
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -120,15 +110,11 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt;
         }
-        // <summary>
-        // Get user by ID
-        // <summary>
         public static DataTable GetUserByID(int userid, out string errMsg)
         {
             errMsg = string.Empty;
             DataTable dt = new DataTable();
-            string query = @"SELECT UserID, Username, Permissions, FullName, Phone,
-                IsActive, CreatedAt FROM Users where userid= @userid";
+            string query = @"SELECT * FROM Users where userid= @userid";
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -151,15 +137,11 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt;
         }
-        // <summary>
-        // Get user by Username
-        // <summary>
-        public static DataTable GetUserByUserName(int username, out string errMsg)
+        public static DataTable GetUserByUserName(string username, out string errMsg)
         {
             errMsg = string.Empty;
             DataTable dt = new DataTable();
-            string query = @"SELECT UserID, Username, Permissions, FullName, Phone,
-                IsActive, CreatedAt FROM Users where username= @username";
+            string query = @"SELECT * FROM Users where username= @username";
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -182,10 +164,7 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt;
         }
-        /// <summary>
-        /// تحديث بيانات المستخدم وصلاحياته
-        /// </summary>
-        public static bool UpdateUser(int userID, string username, int permissions, string fullName, string phone, bool isActive, out string errMsg)
+        public static bool UpdateUser(int userID, string username, int permissions, string fullName, bool isActive,int updatedBy, out string errMsg, string phone = null)
         {
             bool isUpdated = false;
             errMsg = string.Empty;
@@ -204,6 +183,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@FullName", fullName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", isActive);
+                    cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
                     try
                     {
@@ -224,7 +204,6 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return isUpdated; // تعيد true في حال النجاح و false في حال الفشل
         }
-
         /// <summary>
         /// تحديث كلمة المرور فقط (منفصلة لأواعي الأمان)
         /// </summary>
@@ -253,7 +232,6 @@ namespace Acc_Trede_winForms_DataAccess
                 }
             }
         }
-
         /// </summary>
         /// Delete the user by disabling activation.
         /// <returns></returns>

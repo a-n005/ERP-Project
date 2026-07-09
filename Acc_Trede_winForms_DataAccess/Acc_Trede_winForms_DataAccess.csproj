@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{75ABA08C-815D-493D-9750-79E8B0357FA7}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>Acc_Trede_winForms_DataAccess</RootNamespace>
     <AssemblyName>Acc_Trede_winForms_DataAccess</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,9 +56,9 @@
     <Compile Include="clsPurchaseInvoices_DAL.cs" />
     <Compile Include="clsSuppliers_DAL.cs" />
     <Compile Include="clsUsers_DAL.cs" />
-    <Compile Include="Database\clsPurchaseInvoiceDetails_DAL.cs" />
-    <Compile Include="Database\clsSalesInvoicesDetails_DAL.cs" />
-    <Compile Include="Database\clsSalesInvoices_DAL.cs" />
+    <Compile Include="clsPurchaseInvoiceDetails_DAL.cs" />
+    <Compile Include="clsSalesInvoicesDetails_DAL.cs" />
+    <Compile Include="clsSalesInvoices_DAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
