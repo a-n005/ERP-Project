@@ -15,9 +15,9 @@ namespace Acc_Trede_winForms_Test
         /// <param name="fullName"></param>
         /// <param name="phone"></param>
         [Theory]
-        [InlineData("sssssssssssss", "pass123", 1, "Anas Abdullah", "0500000000")] // فحص المدير
-        [InlineData("ssssssssss", "hash9988", 2, "Khalid Ali", null)]         // فحص مستخدم عادي بدون هاتف
-        [InlineData("sssssssss", "securesaled", 4, "Sami Sales", "0511111111")] // فحص موظف مبيعات
+        [InlineData("sssssssssssss", "pass123", 1, "Anas Abdullah", "0500000000")] 
+        [InlineData("ssssssssss", "hash9988", 2, "Khalid Ali", null)]        
+        [InlineData("sssssssss", "securesaled", 4, "Sami Sales", "0511111111")] 
         public void AddNewUser_MultipleUsers_ShouldRegisterSuccessfully(
              string username, string passwordHash, int permissions, string fullName, string? phone)
         {
