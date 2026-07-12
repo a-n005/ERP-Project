@@ -1,8 +1,7 @@
 ﻿using Acc_Trede_winForms_DataAccess;
-
 using Xunit;
 
-namespace Acc_Trede_winForms_Test
+namespace Acc_Trede_winForms_Test.DAL
 {
     public class clsUsersTest
     {
