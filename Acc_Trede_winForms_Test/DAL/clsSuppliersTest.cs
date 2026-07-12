@@ -1,0 +1,120 @@
+﻿using Acc_Trede_winForms_DataAccess;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Acc_Trede_winForms_Test.DAL
+{
+    public class clsSuppliersTest
+    {
+        [Theory]
+        [InlineData("an", null, null, null, 1)]
+        [InlineData("ans", "x", "050", "15748513", 1)]
+        public void InsertSupplier_Multiple_Success(string supplierName, string? companyName,
+         string? phone, string? taxNumber, int createdBy)
+        {
+            var x = clsSuppliers_DAL.InsertSupplier(supplierName, companyName, phone, taxNumber, createdBy, out string errMsg);
+
+            Assert.True(x, $"Error: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Theory]
+        [InlineData("an", null, null, null, 1)]
+        [InlineData("anfgs", "x", "050", "15748513", 0)]
+        [InlineData(null, "x", "050", "15748513", 5)]
+        public void InsertSupplier_Multiple_Failed(string? supplierName, string? companyName,
+       string? phone, string? taxNumber, int createdBy)
+        {
+            var x = clsSuppliers_DAL.InsertSupplier(supplierName, companyName, phone, taxNumber, createdBy, out string errMsg);
+
+            Assert.False(x, $"Error: {errMsg}");
+            Assert.False(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        // Update 
+        [Theory]
+        [InlineData(1, "aa", null, null, null, 3)]
+        [InlineData(2, "aaa", null, null, null, 3)]
+        public void UpdateSupplier_Multiple_Success(int supplierID, string? supplierName,
+            string? companyName, string? phone, string? taxNumber, int updatedBy)
+        {
+            var x = clsSuppliers_DAL.UpdateSupplier(supplierID, supplierName, companyName, phone, taxNumber, updatedBy, out string errMsg);
+
+            Assert.True(x, $"Error: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Theory]
+        [InlineData(0, "aa", null, null, null, 3)]
+        [InlineData(1, "aaa", null, null, null, 3)]
+        [InlineData(2, "aaa", null, null, null, 0)]
+        [InlineData(2, null, null, null, null, 1)]
+        public void UpdateSupplier_Multiple_Failed(int supplierID, string? supplierName,
+           string? companyName, string? phone, string? taxNumber, int updatedBy)
+        {
+            var x = clsSuppliers_DAL.UpdateSupplier(supplierID, supplierName, companyName, phone, taxNumber, updatedBy, out string errMsg);
+
+            Assert.False(x, $"Error: {errMsg}");
+            Assert.False(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+
+        // Delete 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void DeleteSupplierSoft_Multiple_Success(int supplierID)
+        {
+            var x = clsSuppliers_DAL.DeleteSupplierSoft(supplierID, out string errMsg);
+
+            Assert.True(x, $"Error: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Theory]
+        [InlineData(0)]
+        public void DeleteSupplierSoft_Multiple_Failed(int supplierID)
+        {
+            var x = clsSuppliers_DAL.DeleteSupplierSoft(supplierID, out string errMsg);
+
+            Assert.False(x, $"Error: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        // Get
+        [Fact]
+        public void GetAllSuppliers_ReturnDt_Success()
+        {
+            var x = clsSuppliers_DAL.GetAllSuppliers(out string errMsg);
+
+            Assert.True(x.Rows.Count>0, $"Error: {errMsg}");
+            Assert.Equal("050", x.Rows[3].Field<string>("Phone"));
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Fact]
+        public void GetSupplierByID_ReturnRecord_Succes()
+        {
+            var x = clsSuppliers_DAL.GetSupplierByID(1,out string errMsg);
+
+            Assert.True(x.Rows.Count > 0, $"Error: {errMsg}");
+            Assert.Null(x.Rows[0].Field<string>("Phone"));
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Fact]
+        public void GetSupplierByID_WithNull_Failed()
+        {
+            var x = clsSuppliers_DAL.GetSupplierByID(0, out string errMsg);
+            Assert.False(x.Rows.Count > 0, $"Error: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+        [Fact]
+        public void GetSupplierByID_WrongData_Failed()
+        {
+            var x = clsSuppliers_DAL.GetSupplierByID(1, out string errMsg);
+            Assert.True(x.Rows.Count > 0, $"Error: {errMsg}");
+             Assert.NotEqual("050", x.Rows[0].Field<string>("Phone"));
+            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+        }
+    }
+}
+

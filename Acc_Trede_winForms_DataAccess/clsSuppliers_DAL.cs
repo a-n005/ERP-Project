@@ -11,7 +11,7 @@ namespace Acc_Trede_winForms_DataAccess
     public class clsSuppliers_DAL
     {
         public static bool InsertSupplier(string supplierName, string companyName,
-            string phone, string taxNumber, out string errMsg)
+            string phone, string taxNumber,int createdBy, out string errMsg)
         {
             bool isInserted = false;
             errMsg = string.Empty;
@@ -28,6 +28,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@CompanyName", (object)companyName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
 
                     try
                     {
@@ -48,7 +49,7 @@ namespace Acc_Trede_winForms_DataAccess
             return isInserted;
         }
         public static bool UpdateSupplier(int supplierID, string supplierName,
-            string companyName, string phone, string taxNumber, out string errMsg)
+            string companyName, string phone, string taxNumber,int updatedBy, out string errMsg)
         {
             bool isUpdated = false;
             errMsg = string.Empty;
@@ -66,6 +67,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@CompanyName", (object)companyName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
                     try
                     {
@@ -122,8 +124,7 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // جلب بيانات الموردين بالتفصيل مع ترتيبهم أبجدياً حسب اسم الشركة أو المورد
-            string query = @"SELECT SupplierID, SupplierName, CompanyName, Phone,
-                     TaxNumber, CurrentBalance,CreatedAt, IsActive 
+            string query = @"SELECT *
                      FROM Suppliers 
                      ORDER BY CompanyName ASC, SupplierName ASC";
 
@@ -154,8 +155,7 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // كويري دقيق لجلب بيانات مورد واحد فقط بناءً على الـ ID
-            string query = @"SELECT SupplierID, SupplierName, CompanyName, Phone, TaxNumber,
-                     CurrentBalance,CreatedAt, IsActive 
+            string query = @"SELECT *
                      FROM Suppliers 
                      WHERE SupplierID = @SupplierID";
 
