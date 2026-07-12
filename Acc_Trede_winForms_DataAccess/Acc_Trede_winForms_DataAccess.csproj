@@ -52,6 +52,7 @@
     <Compile Include="clsCustomers_DAL.cs" />
     <Compile Include="clsDataAccessSettings.cs" />
     <Compile Include="clsFinancialTransactions_DAL.cs" />
+    <Compile Include="clsGenericDataAccessBase_DAL.cs" />
     <Compile Include="clsProducts_DAL.cs" />
     <Compile Include="clsPurchaseInvoices_DAL.cs" />
     <Compile Include="clsSuppliers_DAL.cs" />

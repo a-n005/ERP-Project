@@ -11,7 +11,7 @@ namespace Acc_Trede_winForms_DataAccess
     public class clsProducts_DAL
     {
         public static bool InsertProduct(string barcode, string productName, decimal costPrice, 
-            decimal salePrice, int stockQuantity, int minStockAlert, out string errMsg)
+            decimal salePrice, int stockQuantity, int minStockAlert,int createdBy, out string errMsg)
         {
             bool isInserted = false;
             errMsg = string.Empty;
@@ -30,6 +30,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@SalePrice", salePrice);
                     cmd.Parameters.AddWithValue("@StockQuantity", stockQuantity);
                     cmd.Parameters.AddWithValue("@MinStockAlert", minStockAlert);
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
 
                     try
                     {
@@ -51,7 +52,7 @@ namespace Acc_Trede_winForms_DataAccess
             return isInserted; // تعيد true في حال النجاح و false في حال الفشل
         }
         public static bool UpdateProduct(int productID, string barcode, string productName,
-            decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert, out string errMsg)
+            decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert,int updatedBy, out string errMsg)
         {
             bool isUpdated = false;
             errMsg = string.Empty;
@@ -71,6 +72,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@SalePrice", salePrice);
                     cmd.Parameters.AddWithValue("@StockQuantity", stockQuantity);
                     cmd.Parameters.AddWithValue("@MinStockAlert", minStockAlert);
+                    cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
                     try
                     {
@@ -120,14 +122,14 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt; // تعيد الجدول ممتلئاً بالمنتجات النواقص، أو فارغاً في حال لا توجد نواقص أو حدث خطأ
         }
-        public static bool DeleteProductSoft(int productID, out string errMsg)
+        public static bool DeleteProductSoft(int productID,int updatedBy, out string errMsg)
         {
             bool isDeleted = false;
             errMsg = string.Empty;
 
             // نص الكويري المباشر لتحديث حالة المنتج إلى غير نشط
             string query = @"UPDATE Products 
-                     SET IsActive = 0 
+                     SET IsActive = 0 , updatedBy= @UpdatedBy ,UpdatedAt = getDate()
                      WHERE ProductID = @ProductID";
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -138,6 +140,7 @@ namespace Acc_Trede_winForms_DataAccess
 
                     // تمرير البارامتر بشكل آمن
                     cmd.Parameters.AddWithValue("@ProductID", productID);
+                    cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
                     try
                     {
@@ -163,8 +166,7 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // نص الكويري المباشر لجلب المنتجات النشطة وترتيبها
-            string query = @"SELECT ProductID, Barcode, ProductName, CostPrice, SalePrice,
-                     StockQuantity, MinStockAlert, CreatedAt, IsActive
+            string query = @"SELECT *
                      FROM Products 
                      ORDER BY ProductName ASC";
 
@@ -195,8 +197,7 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // كويري مباشر لجلب بيانات منتج واحد محدد بالـ ID
-            string query = @"SELECT ProductID, Barcode, ProductName, CostPrice, SalePrice,
-                    StockQuantity, MinStockAlert,  CreatedAt,IsActive
+            string query = @"SELECT *
                      FROM Products 
                      WHERE ProductID = @ProductID";
 
@@ -230,10 +231,9 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // كويري دقيق ومحدد الحقول لجلب منتج واحد مطابق للباركود ونشط
-            string query = @"SELECT ProductID, Barcode, ProductName, CostPrice,
-                     SalePrice, StockQuantity, MinStockAlert, CreatedAt, IsActive
+            string query = @"SELECT *
                      FROM Products 
-                     WHERE Barcode = @Barcode AND IsActive = 1";
+                     WHERE Barcode = @Barcode";
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
