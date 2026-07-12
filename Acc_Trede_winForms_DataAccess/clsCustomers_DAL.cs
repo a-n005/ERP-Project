@@ -11,7 +11,7 @@ namespace Acc_Trede_winForms_DataAccess
     public class clsCustomers_DAL
     {
         public static bool InsertCustomer(string customerName, string phone,
-            string taxNumber, out string errMsg)
+            string taxNumber,int createdBy, out string errMsg)
         {
             bool isInserted = false;
             errMsg = string.Empty;
@@ -27,6 +27,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@CustomerName", customerName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
 
                     try
                     {
@@ -48,7 +49,7 @@ namespace Acc_Trede_winForms_DataAccess
             return isInserted; // تعيد true في حال النجاح و false في حال الفشل
         }
         public static bool UpdateCustomer(int customerID, string customerName, 
-            string phone, string taxNumber, out string errMsg)
+            string phone, string taxNumber,int updatedBy, out string errMsg)
         {
             bool isUpdated = false;
             errMsg = string.Empty;
@@ -65,6 +66,7 @@ namespace Acc_Trede_winForms_DataAccess
                     cmd.Parameters.AddWithValue("@CustomerName", customerName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value); // معالجة الجوال الفارغ
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value); // معالجة الرقم الضريبي الفارغ
+                    cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
                     try
                     {
@@ -122,8 +124,7 @@ namespace Acc_Trede_winForms_DataAccess
             errMsg = string.Empty;
 
             // جلب بيانات العملاء حسب حالتهم (نشط / أرشيف) مع جلب الرصيد الحالي
-            string query = @"SELECT CustomerID, CustomerName, Phone, TaxNumber,
-                     CurrentBalance,CreatedAt, IsActive 
+            string query = @"SELECT *
                      FROM Customers 
                      ORDER BY CustomerName ASC";
 
@@ -153,8 +154,7 @@ namespace Acc_Trede_winForms_DataAccess
             DataTable dt = new DataTable();
             errMsg = string.Empty;
 
-            string query = @"SELECT CustomerID, CustomerName, Phone, TaxNumber,
-                     CurrentBalance,CreatedAt, IsActive 
+            string query = @"SELECT *
                      FROM Customers 
                      WHERE CustomerID = @CustomerID";
 
