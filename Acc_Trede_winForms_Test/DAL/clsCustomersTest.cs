@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Acc_Trede_winForms_Test
+namespace Acc_Trede_winForms_Test.DAL
 {
     public class clsCustomersTest
     {

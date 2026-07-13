@@ -48,5 +48,15 @@ namespace Acc_Trede_winForms_DataAccess.Database
             }
             return dt;
         }
+
+        public static SqlParameter InsertCart(DataTable dt)
+        {
+            SqlParameter tvpParameter = new SqlParameter();
+            tvpParameter.ParameterName = "@Cart";
+            tvpParameter.SqlDbType = SqlDbType.Structured;
+            tvpParameter.TypeName = "dbo.PurchaseCartType";
+            tvpParameter.Value = dt;
+            return tvpParameter;
+        }
     }
 }
