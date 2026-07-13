@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# الاقتراح الأفضل: جعلها كاقتراحات تظهر بنقاط رمادية خفيفة تحت الكود دون إزعاج
+dotnet_analyzer_diagnostic.severity = suggestion
