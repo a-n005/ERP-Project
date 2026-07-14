@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_DataAccess.Database
 {
-    public class clsSalesInvoicesDetails_DAL
+    public class clsSalesInvoiceDetails_DAL
     {
         /// <summary>
         /// جلب جميع الأسطر والأصناف التابعة لفاتورة مبيعات معينة عبر الـ InvoiceID (مع جلب الـ Barcode)
         /// </summary>
+        /// <returns>I'll change it to view </returns>
         public static DataTable GetDetailsByInvoiceID(int invoiceID, out string errorMessage)
         {
             DataTable dt = new DataTable();
@@ -20,7 +21,7 @@ namespace Acc_Trede_winForms_DataAccess.Database
 
             // استعلام يجلب تفاصيل الأصناف المباعة مع جلب اسم المنتج والباركود الخاص به للواجهات
             // لاحظ أننا نقرأ CostPriceAtSale المخرن لحظة البيع لحساب الأرباح بدقة لاحقاً في الـ BLL
-            string query = @"SELECT D.InvoiceDetailID, D.InvoiceID, D.ProductID, 
+            string query = @"SELECT D.DetailID, D.InvoiceID, D.ProductID, 
                                     P.Barcode, P.ProductName, D.Quantity, D.UnitPrice,
                                     D.CostPriceAtSale,
                                     (D.Quantity * D.UnitPrice) AS TotalLinePrice

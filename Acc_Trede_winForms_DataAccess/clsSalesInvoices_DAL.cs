@@ -13,7 +13,7 @@ namespace Acc_Trede_winForms_DataAccess.Database
         /// <summary>
         /// حفظ فاتورة مبيعات جديدة مع تفاصيلها وتحديث كميات المخزن وأرصدة العملاء الآجلة دفعة واحدة
         /// </summary>
-        public static bool InsertSalesInvoice(
+        public static int InsertSalesInvoice(
             string invoiceNumber,
             int userID,
             int? customerID,
@@ -56,27 +56,32 @@ namespace Acc_Trede_winForms_DataAccess.Database
                     try
                     {
                         connection.Open();
-                        rowsAffected = command.ExecuteNonQuery();
+                        object res = command.ExecuteScalar();
+                        if(res!= null && int.TryParse(res.ToString(), out int id))
+                        {
+                            rowsAffected=id;
+                        }
                     }
                     catch (SqlException ex)
                     {
                         // اقتناص رسائل الـ RAISERROR المخصصة من الـ SQL (مثل: لا يمكن حفظ فاتورة بها متبقٍّ آجل بدون تحديد العميل!)
                         errorMessage = ex.Message;
-                        return false;
+                        return -1;
                     }
                     catch (Exception ex)
                     {
                         errorMessage = "خطأ عام في النظام: " + ex.Message;
-                        return false;
+                        return -1;
                     }
                 }
             }
-            return (rowsAffected > 0);
+            return rowsAffected;
         }
 
         /// <summary>
         /// جلب جميع فواتير المبيعات المسجلة لعرضها في جدول الإدارة الرئيسي (Dashboard)
         /// </summary>
+        /// <returns> I'll change to view and falg enum </returns>
         public static DataTable GetAllSalesInvoices(out string errorMessage)
         {
             DataTable dt = new DataTable();
