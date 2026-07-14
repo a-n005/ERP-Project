@@ -19,7 +19,7 @@ namespace Acc_Trede_winForms_DataAccess.Database
             errorMessage = string.Empty;
 
             // استعلام يجلب تفاصيل الأصناف مع جلب اسم المنتج وكوده للواجهات
-            string query = @"SELECT D.InvoiceDetailID, D.InvoiceID, D.ProductID, 
+            string query = @"SELECT D.PurchaseDetailID, D.InvoiceID, D.ProductID, 
                                     P.Barcode, P.ProductName, D.Quantity, D.UnitPrice,
                                     (D.Quantity * D.UnitPrice) AS TotalLinePrice
                              FROM PurchaseInvoiceDetails D
