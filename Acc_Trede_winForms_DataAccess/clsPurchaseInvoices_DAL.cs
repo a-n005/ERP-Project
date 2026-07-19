@@ -18,7 +18,6 @@ namespace Acc_Trede_winForms_DataAccess
             string supplierInvoiceNumber,
             int userID,
             int? supplierID,
-            string paymentType,
             decimal totalAmount,
             decimal discount,
             decimal taxAmount,
@@ -41,7 +40,6 @@ namespace Acc_Trede_winForms_DataAccess
                     command.Parameters.AddWithValue("@SupplierInvoiceNumber", string.IsNullOrEmpty(supplierInvoiceNumber) ? (object)DBNull.Value : supplierInvoiceNumber);
                     command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@SupplierID", supplierID.HasValue ? (object)supplierID.Value : DBNull.Value);
-                    command.Parameters.AddWithValue("@PaymentType", paymentType);
                     command.Parameters.AddWithValue("@TotalAmount", totalAmount);
                     command.Parameters.AddWithValue("@Discount", discount);
                     command.Parameters.AddWithValue("@TaxAmount", taxAmount);

@@ -13,7 +13,7 @@ namespace Acc_Trede_winForms_DataAccess
         /// <summary>
         /// إضافة سند قبض جديد في النظام واسترجاع رسائل الخطأ إن وجدت عبر متغير out
         /// </summary>
-        public static bool InsertReceiptVoucher(
+        public static int InsertReceiptVoucher(
             string voucherNumber,
             decimal amount,
             string paymentMethod,
@@ -21,6 +21,8 @@ namespace Acc_Trede_winForms_DataAccess
             int? supplierID,
             string notes,
             int userID,
+            int? saleInvoiceID,
+            int? purchaseReturnInvoiceID,
             out string errorMessage)
         {
             int rowsAffected = 0;
@@ -42,33 +44,37 @@ namespace Acc_Trede_winForms_DataAccess
                     // معالجة القيم الاختيارية لـ CustomerID و SupplierID
                     command.Parameters.AddWithValue("@CustomerID", customerID.HasValue ? (object)customerID.Value : DBNull.Value);
                     command.Parameters.AddWithValue("@SupplierID", supplierID.HasValue ? (object)supplierID.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@SaleInvoiceID", saleInvoiceID.HasValue ? (object)saleInvoiceID.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@PurchaseReturnID", purchaseReturnInvoiceID.HasValue ? (object)purchaseReturnInvoiceID.Value : DBNull.Value);
 
                     try
                     {
                         connection.Open();
-                        rowsAffected = command.ExecuteNonQuery();
+                        object res = command.ExecuteScalar();
+                        if (res != null && int.TryParse(res.ToString(), out int id))
+                        { rowsAffected = id; }
                     }
                     catch (SqlException ex)
                     {
                         // اقتناص رسائل الـ RAISERROR المكتوبة بالعربية داخل الداتابيز
                         errorMessage = ex.Message;
-                        return false;
+                        return -1;
                     }
                     catch (Exception ex)
                     {
                         // اقتناص أي خطأ عام آخر (مثل انقطاع الاتصال)
                         errorMessage = "خطأ عام في النظام: " + ex.Message;
-                        return false;
+                        return -1;
                     }
                 }
             }
 
-            return (rowsAffected > 0);
+            return rowsAffected;
         }
         /// <summary>
         /// إضافة سند صرف جديد في النظام واسترجاع رسائل الخطأ إن وجدت عبر متغير out
         /// </summary>
-        public static bool InsertPaymentVoucher(
+        public static int InsertPaymentVoucher(
             string voucherNumber,
             decimal amount,
             string paymentMethod,
@@ -76,6 +82,8 @@ namespace Acc_Trede_winForms_DataAccess
             int? customerID,
             string notes,
             int userID,
+            int? saleReturnInvoiceID,
+            int? purchaseInvoiceID,
             out string errorMessage)
         {
             int rowsAffected = 0;
@@ -99,42 +107,46 @@ namespace Acc_Trede_winForms_DataAccess
                     // معالجة القيم الاختيارية لـ SupplierID و CustomerID (إذا كانت فارغة نمرر DBNull)
                     command.Parameters.AddWithValue("@SupplierID", supplierID.HasValue ? (object)supplierID.Value : DBNull.Value);
                     command.Parameters.AddWithValue("@CustomerID", customerID.HasValue ? (object)customerID.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@SaleReturnInvoiceID", saleReturnInvoiceID.HasValue ? (object)saleReturnInvoiceID.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("PurchaseInvoiceID", purchaseInvoiceID.HasValue ? (object)purchaseInvoiceID.Value : DBNull.Value);
 
                     try
                     {
                         connection.Open();
-                        rowsAffected = command.ExecuteNonQuery();
+                        object res = command.ExecuteScalar();
+                        if (res != null && int.TryParse(res.ToString(), out int id))
+                        {
+                            rowsAffected = id;
+                        }
                     }
                     catch (SqlException ex)
                     {
                         // اقتناص رسائل التحقق العربية مثل: (خطأ: يجب أن يكون مبلغ السند أكبر من صفر!)
                         errorMessage = ex.Message;
-                        return false;
+                        return -1;
                     }
                     catch (Exception ex)
                     {
                         errorMessage = "خطأ عام في النظام: " + ex.Message;
-                        return false;
+                        return -1;
                     }
                 }
             }
 
-            return (rowsAffected > 0);
+            return rowsAffected;
         }
 
         /// <summary>
-        /// جلب جميع الحركات والسندات المالية المسجلة في النظام
+        /// جلب جميع الحركات والسندات المالية المسجلة في النظام - سوف يعدل ليجلب الفيو
         /// </summary>
+        // not work for now the new tables are paymentVoucher and receiptVoucher
         public static DataTable GetAllTransactions(out string errorMessage)
         {
             DataTable dt = new DataTable();
             errorMessage = string.Empty;
 
             // استعلام مباشر لجلب البيانات (ويمكنك مستقبلاً تحويله لـ Stored Procedure أو View)
-            string query = @"SELECT TransactionID, VoucherNumber, TransactionType, Amount, 
-                            PaymentMethod, TransactionDate, CustomerID, SupplierID, Notes 
-                     FROM FinancialTransactions 
-                     ORDER BY TransactionDate DESC";
+            string query = @"SELECT * FROM FinancialTransactions ORDER BY TransactionDate DESC";
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -162,17 +174,14 @@ namespace Acc_Trede_winForms_DataAccess
         }
 
         /// <summary>
-        /// البحث عن سند مالي محدد باستخدام رقم السند
+        /// البحث عن سند مالي محدد باستخدام رقم السند - سوف يعدل ليجلب الفيو
         /// </summary>
         public static DataTable GetTransactionByVoucherNumber(string voucherNumber, out string errorMessage)
         {
             DataTable dt = new DataTable();
             errorMessage = string.Empty;
 
-            string query = @"SELECT TransactionID, VoucherNumber, TransactionType, Amount, 
-                            PaymentMethod, TransactionDate, CustomerID, SupplierID, Notes, UserID 
-                     FROM FinancialTransactions 
-                     WHERE VoucherNumber = @VoucherNumber";
+            string query = @"SELECT * FROM FinancialTransactions  WHERE VoucherNumber = @VoucherNumber";
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {

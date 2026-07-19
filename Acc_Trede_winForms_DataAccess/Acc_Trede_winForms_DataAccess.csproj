@@ -62,7 +62,7 @@
     <Compile Include="clsSuppliers_DAL.cs" />
     <Compile Include="clsUsers_DAL.cs" />
     <Compile Include="clsPurchaseInvoiceDetails_DAL.cs" />
-    <Compile Include="clsSalesInvoicesDetails_DAL.cs" />
+    <Compile Include="clsSalesInvoiceDetails_DAL.cs" />
     <Compile Include="clsSalesInvoices_DAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

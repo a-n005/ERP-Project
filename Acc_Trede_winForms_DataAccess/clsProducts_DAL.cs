@@ -10,8 +10,8 @@ namespace Acc_Trede_winForms_DataAccess
 {
     public class clsProducts_DAL
     {
-        public static bool InsertProduct(string barcode, string productName, decimal costPrice, 
-            decimal salePrice, int stockQuantity, int minStockAlert,int createdBy, out string errMsg)
+        public static bool InsertProduct(string barcode, string productName, decimal costPrice,
+            decimal salePrice, int stockQuantity, int minStockAlert, int createdBy, out string errMsg)
         {
             bool isInserted = false;
             errMsg = string.Empty;
@@ -52,7 +52,7 @@ namespace Acc_Trede_winForms_DataAccess
             return isInserted; // تعيد true في حال النجاح و false في حال الفشل
         }
         public static bool UpdateProduct(int productID, string barcode, string productName,
-            decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert,int updatedBy, out string errMsg)
+            decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert, int updatedBy, out string errMsg)
         {
             bool isUpdated = false;
             errMsg = string.Empty;
@@ -122,7 +122,7 @@ namespace Acc_Trede_winForms_DataAccess
             }
             return dt; // تعيد الجدول ممتلئاً بالمنتجات النواقص، أو فارغاً في حال لا توجد نواقص أو حدث خطأ
         }
-        public static bool DeleteProductSoft(int productID,int updatedBy, out string errMsg)
+        public static bool DeleteProductSoft(int productID, int updatedBy, out string errMsg)
         {
             bool isDeleted = false;
             errMsg = string.Empty;
@@ -146,10 +146,7 @@ namespace Acc_Trede_winForms_DataAccess
                     {
                         conn.Open();
                         // تنفيذ الكويري في السيرفر
-                        int rowsAffected = cmd.ExecuteNonQuery();
-
-                        // إذا تم تحديث الصف بنجاح ستكون النتيجة true
-                        isDeleted = (rowsAffected > 0);
+                        isDeleted = cmd.ExecuteNonQuery() > 0;
                     }
                     catch (Exception ex)
                     {

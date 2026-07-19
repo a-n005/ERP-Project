@@ -34,12 +34,12 @@ namespace Acc_Trede_winForms_Test.DAL
             dt5.Rows.Add("test", "tt", 10, 15);
 
             // كل سطر هنا يمثل حالة فحص كاملة (تطابق بارامترات دالة التست)
-            yield return new object[] { "first", 1, 1, "Cash", 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt1 };
+            yield return new object[] { "first", 1, 1, 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt1 };
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-            yield return new object[] { "test", 1, null, "Card", 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt2 };
-            yield return new object[] { "526", 1, 2, "Credit", 50.0m, 5.0m, 1.0m, 46.0m, 50.0m, 50.0m, dt3 };
-            yield return new object[] { "test", 1, 4, "Mixed", 100.0m, 10.0m, 15.0m, 105.0m, 50.0m,50.0m, dt4 };
-            yield return new object[] { "test", 1, null, "Mixed", 300.0m, 50.0m, 20.0m, 270.0m, 135.0m, 135m, dt5 };
+            yield return new object[] { "test", 1, null, 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt2 };
+            yield return new object[] { "526", 1, 2, 50.0m, 5.0m, 1.0m, 46.0m, 50.0m, 50.0m, dt3 };
+            yield return new object[] { "test", 1, 4, 100.0m, 10.0m, 15.0m, 105.0m, 50.0m,50.0m, dt4 };
+            yield return new object[] { "test", 1, null, 300.0m, 50.0m, 20.0m, 270.0m, 135.0m, 135m, dt5 };
 #pragma warning restore CS8625 
 
         }
@@ -50,7 +50,6 @@ namespace Acc_Trede_winForms_Test.DAL
             string supplierInvoiceNumber,
             int userID,
             int? supplierID,
-            string paymentType,
             decimal totalAmount,
             decimal discount,
             decimal taxAmount,
@@ -61,8 +60,7 @@ namespace Acc_Trede_winForms_Test.DAL
         {
 
             int id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
-                paymentType, totalAmount, discount, taxAmount, netAmount,
-                cashAmount, cardAmount, cartDataTable, out string errorMessage);
+                totalAmount, discount, taxAmount, netAmount, cashAmount, cardAmount, cartDataTable, out string errorMessage);
 
             Assert.True(id > 0, $"Error: {errorMessage}");
             Assert.True(string.IsNullOrEmpty(errorMessage), $"Error with msg: {errorMessage}");
@@ -79,11 +77,11 @@ namespace Acc_Trede_winForms_Test.DAL
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             // كل سطر هنا يمثل حالة فحص كاملة (تطابق بارامترات دالة التست)
-            yield return new object[] { "first", 1, null, "Cash", 50.0m, 0.0m, 0.0m, 50.0m, 5.0m, 0.0m, dt1 };// has credit, null suppid
-            yield return new object[] { null, 1, null, "Card", 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt2 };// invalid invoice num
-            yield return new object[] { "526", null, 2, "Credit", 50.0m, 5.0m, 1.0m, 46.0m, 50.0m, 50.0m, dt3 };// invalid userid
-            yield return new object[] { "test", 1, 4, "Mixed", 100.0m, 10.0m, 15.0m, 105.0m, 1000.0m, 50.0m, dt4 };
-            yield return new object[] { "test", 1, null, "Mixed", 300.0m, 50.0m, 20.0m, 270.0m, 1035.0m, 135m, dt5 };
+            yield return new object[] { "first", 1, null, 50.0m, 0.0m, 0.0m, 50.0m, 5.0m, 0.0m, dt1 };// has credit, null suppid
+            yield return new object[] { null, 1, null, 50.0m, 0.0m, 0.0m, 50.0m, 50.0m, 0.0m, dt2 };// invalid invoice num
+            yield return new object[] { "526", null, 2,50.0m, 5.0m, 1.0m, 46.0m, 50.0m, 50.0m, dt3 };// invalid userid
+            yield return new object[] { "test", 1, 4, 100.0m, 10.0m, 15.0m, 105.0m, 1000.0m, 50.0m, dt4 };
+            yield return new object[] { "test", 1, null, 300.0m, 50.0m, 20.0m, 270.0m, 1035.0m, 135m, dt5 };
 #pragma warning restore CS8625 
 
         }
@@ -93,7 +91,6 @@ namespace Acc_Trede_winForms_Test.DAL
           string supplierInvoiceNumber,
           int userID,
           int? supplierID,
-          string paymentType,
           decimal totalAmount,
           decimal discount,
           decimal taxAmount,
@@ -104,7 +101,7 @@ namespace Acc_Trede_winForms_Test.DAL
         {
 
             int id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
-                paymentType, totalAmount, discount, taxAmount, netAmount,
+                totalAmount, discount, taxAmount, netAmount,
                 cashAmount, cardAmount, cartDataTable, out string errorMessage);
 
             Assert.False(id > 0, $"Error: {errorMessage}");
