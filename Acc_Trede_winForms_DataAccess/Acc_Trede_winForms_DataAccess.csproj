@@ -59,6 +59,8 @@
     <Compile Include="clsGenericDataAccessBase_DAL.cs" />
     <Compile Include="clsProducts_DAL.cs" />
     <Compile Include="clsPurchaseInvoices_DAL.cs" />
+    <Compile Include="clsPurchaseReturn_DAL.cs" />
+    <Compile Include="clsPurchaseReturnDetails_DAL.cs" />
     <Compile Include="clsSalesReturnDetails_DAL.cs" />
     <Compile Include="clsSalesReturn_DAL.cs" />
     <Compile Include="clsSuppliers_DAL.cs" />
