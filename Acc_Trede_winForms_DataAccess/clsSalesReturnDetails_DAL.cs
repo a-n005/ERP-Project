@@ -15,7 +15,7 @@ namespace Acc_Trede_winForms_DataAccess
             SqlParameter tvpParameter = new SqlParameter();
             tvpParameter.ParameterName = "@Cart";
             tvpParameter.SqlDbType = SqlDbType.Structured;
-            tvpParameter.TypeName = "dbo.SalesCartType";
+            tvpParameter.TypeName = "dbo.SalesReturnCartType";
             tvpParameter.Value = dt;
             return tvpParameter;
         }

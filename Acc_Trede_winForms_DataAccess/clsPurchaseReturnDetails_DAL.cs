@@ -13,7 +13,7 @@ namespace Acc_Trede_winForms_DataAccess
         public static SqlParameter InsertCart(DataTable dt)
         {
             SqlParameter tvpParameter=new SqlParameter("@Cart",SqlDbType.Structured);
-            tvpParameter.TypeName = "dbo.PutchaseCartType";
+            tvpParameter.TypeName = "dbo.PurchaseReturnCartType";
             tvpParameter.Value = dt;
             return tvpParameter;
         }

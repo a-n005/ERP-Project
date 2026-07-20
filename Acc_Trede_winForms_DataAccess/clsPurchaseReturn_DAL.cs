@@ -18,6 +18,7 @@ namespace Acc_Trede_winForms_DataAccess
         /// <returns>Return invoice id</returns>
         public static int InsertPurchaseReturn(
             int invoiceID,
+            string returnNumber,
             int? supplier,
             decimal totalAmount,
             decimal taxAmount,
@@ -35,7 +36,9 @@ namespace Acc_Trede_winForms_DataAccess
             {
                 using(SqlCommand cmd= new SqlCommand("dbo.sp_InsertReturnPurchase",conn))
                 {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@InvoiceID", invoiceID);
+                    cmd.Parameters.AddWithValue("@ReturnNumber", returnNumber);
                     cmd.Parameters.AddWithValue("@SupplierID", supplier.HasValue?(object)supplier.Value:DBNull.Value);
                     cmd.Parameters.AddWithValue("@TotalAmount", totalAmount);
                     cmd.Parameters.AddWithValue("@TaxAmount", taxAmount);

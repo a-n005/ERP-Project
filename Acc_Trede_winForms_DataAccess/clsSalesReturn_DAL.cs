@@ -17,6 +17,7 @@ namespace Acc_Trede_winForms_DataAccess
         /// <returns>Invoice ID from Return</returns>
         public static int InsertSalesReturn(
             int invoiceID,
+            string ReturnNumber,
             int? customerID,
             decimal totalAmount,
             decimal taxAmount,
@@ -36,7 +37,9 @@ namespace Acc_Trede_winForms_DataAccess
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@InvoiceID", invoiceID);
+                    cmd.Parameters.AddWithValue("@ReturnNumber", ReturnNumber);
                     cmd.Parameters.AddWithValue("@CustomerID", customerID.HasValue ? (object)customerID.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@TotalAmount", totalAmount);
                     cmd.Parameters.AddWithValue("@TaxAmount", taxAmount);
                     cmd.Parameters.AddWithValue("@NetAmount", netAmount);
                     cmd.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? (object)DBNull.Value : notes);
