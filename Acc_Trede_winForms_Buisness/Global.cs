@@ -6,7 +6,7 @@ using System.Data;
 
 namespace Global
 {
-    [Flags] // تتيح دمج أكثر من صلاحية برقم واحد (Bitwise Operations)
+    [Flags]
     public enum enPermissions
     {
         None = 0,             // 0
@@ -17,22 +17,18 @@ namespace Global
         ManageInvoices = 16,  // 1 << 4
         ManageReports = 32,   // 1 << 5
 
-        // دمج كامل الصلاحيات القائمة بدلاً من -1 لتجنب مشاكل المعالجة بالـ Bitwise
         All = ShowUsers | AddUser | UpdateUser | DeleteUser | ManageInvoices | ManageReports
     }
 
     public static class GlobalUser
     {
-        // تخزين البيانات الأساسية للمستخدم الحالي (Default is null)
         public static clsUser_BLL CurrentUser { get; private set; }
 
-        // الخيار الأفضل 1: تهيئة الجلسة بتمرير كائن BLL مكتمل ومجلوب من قاعدة البيانات
         public static void Initialize(clsUser_BLL user)
         {
             CurrentUser = user ?? throw new ArgumentNullException(nameof(user), "لا يمكن تهيئة المستخدم بكائن فارغ.");
         }
 
-        // الخيار 2: إذا كنت تريد تعبئة كائن جديد يدوياً من القيم
         public static void Initialize(int userId, string username, string fullName, enPermissions permissions)
         {
             CurrentUser = new clsUser_BLL
@@ -47,9 +43,11 @@ namespace Global
 
         public static void LogOut()
         {
-            CurrentUser = null; // مسح مرجع الكائن بالكامل
+            CurrentUser = null; 
         }
+
         public static bool IsLoggedIn => CurrentUser != null;
+
         public static Result Login(string username, string passwordHash)
         {
             Result<DataTable> res = clsUsers_DAL.LoginUser(username, passwordHash);
@@ -60,14 +58,20 @@ namespace Global
 
             if (res.Value == null || res.Value.Rows.Count == 0)
             {
-                return Result.Failure("لم يتم العثور على المستخدم المطلوب.");
+                return Result.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
             }
 
             DataRow dr = res.Value.Rows[0];
 
-            clsUser_BLL user = clsUser_BLL.Initialize(dr);
-            Initialize(user);
-            return(user.IsActive) ? Result.Success():Result.Failure("خطأ: المستخدم غير نشط يجب التواصل مع الادارة!");
+            clsUser_BLL user = clsUser_BLL.MapFromDataRow(dr);
+
+            if (!user.IsActive)
+            {
+                return Result.Failure("خطأ: حساب المستخدم معطل، يرجى التواصل مع الإدارة!");
+            }
+
+            Initialize(user); 
+            return Result.Success();
         }
     }
 }

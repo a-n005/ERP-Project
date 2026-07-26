@@ -125,6 +125,11 @@
     <Content Include="Database\Schema\Views\dbo.v_CustomerStatement.View.sql" />
     <Content Include="Database\Schema\Views\dbo.v_SalesProfitReport.View.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Acc_Trade_Core\Acc_Trade_Core.csproj">
+      <Project>{dafa0230-874c-44cc-b1c3-61a8d52c18f9}</Project>
+      <Name>Acc_Trade_Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

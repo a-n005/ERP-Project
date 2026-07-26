@@ -72,6 +72,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Acc_Trade_Core\Acc_Trade_Core.csproj">
+      <Project>{dafa0230-874c-44cc-b1c3-61a8d52c18f9}</Project>
+      <Name>Acc_Trade_Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Acc_Trede_winForms_DataAccess\Acc_Trede_winForms_DataAccess.csproj">
       <Project>{75aba08c-815d-493d-9750-79e8b0357fa7}</Project>
       <Name>Acc_Trede_winForms_DataAccess</Name>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acc_Trede_winForms_DataAccess.Global;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,9 +14,8 @@ namespace Acc_Trede_winForms_DataAccess
         /// <summary>
         /// ميثود للتحقق من تسجيل دخول المستخدم وجلب بياناته وصلاحياته
         /// </summary>
-        public static DataTable LoginUser(string username, string passwordHash, out string errorMessage)
+        public static Result<DataTable> LoginUser(string username, string passwordHash)
         {
-            errorMessage = string.Empty;
             DataTable dt = new DataTable();
 
             string query = @"SELECT * 
@@ -39,26 +39,21 @@ namespace Acc_Trede_winForms_DataAccess
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt; // ترجع الجدول والـ BLL هو من سيتصرف به لاحقاً!
+            return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
         }
-        public static int AddNewUser(string username, string passwordHash, int permissions, string fullName,
-            out string errMsg, string phone = null)
+        public static Result<int> AddNewUser(string username, string passwordHash, int permissions, string fullName, string phone = null)
         {
             int newUserID = -1;
-            errMsg = string.Empty;
-            // استدعاء اسم الإجراء المخزن الفعلي في قاعدتك
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_RegisterUser", conn))
                 {
-                    // إعلام السيرفر أننا نستدعي إجرائاً مخزناً وليس نص كويري
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات للإجراء المخزن
                     cmd.Parameters.AddWithValue("@Username", username);
                     cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
                     cmd.Parameters.AddWithValue("@Permissions", permissions);
@@ -68,7 +63,6 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        // جلب قيمة الـ SCOPE_IDENTITY() الراجعة من الإجراء المخزن
                         object result = cmd.ExecuteScalar();
                         if (result != null && int.TryParse(result.ToString(), out int insertedId))
                         {
@@ -77,16 +71,14 @@ namespace Acc_Trede_winForms_DataAccess
                     }
                     catch (Exception ex)
                     {
-                        // معالجة الأخطاء عند الحاجة
-                        errMsg = ex.Message;
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return newUserID; // يعيد المعرف التلقائي الجديد للمستخدم
+            return (newUserID > 0) ? Result<int>.Success(newUserID) : Result<int>.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
-        public static DataTable GetAllUsers(out string errorMessage)
+        public static Result<DataTable> GetAllUsers()
         {
-            errorMessage = string.Empty;
             DataTable dt = new DataTable();
             string query = "SELECT * FROM Users";
 
@@ -101,18 +93,17 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
         }
-        public static DataTable GetUserByID(int userid, out string errMsg)
+        public static Result<DataTable> GetUserByID(int userid)
         {
-            errMsg = string.Empty;
             DataTable dt = new DataTable();
             string query = @"SELECT * FROM Users where userid= @userid";
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -127,56 +118,24 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             dt.Load(reader);
                         }
+                        return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure($"عذراً، لم يتم العثور على مستخدم بالرقم المعرف: {userid}");
                     }
                     catch (Exception ex)
                     {
-
-                        errMsg = ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
         }
-        public static DataTable GetUserByUserName(string username, out string errMsg)
+        public static Result UpdateUser(int userID, string username, int permissions, string fullName, bool isActive, int updatedBy, string phone = null)
         {
-            errMsg = string.Empty;
-            DataTable dt = new DataTable();
-            string query = @"SELECT * FROM Users where username= @username";
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-
-                        errMsg = ex.Message;
-                    }
-                }
-            }
-            return dt;
-        }
-        public static bool UpdateUser(int userID, string username, int permissions, string fullName, bool isActive,int updatedBy, out string errMsg, string phone = null)
-        {
-            bool isUpdated = false;
-            errMsg = string.Empty;
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_UpdateUser", conn))
                 {
-                    // تحديد نوع الأمر كـ Stored Procedure
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات المطلوبة للإجراء المخزن
                     cmd.Parameters.AddWithValue("@UserID", userID);
                     cmd.Parameters.AddWithValue("@Username", username);
                     cmd.Parameters.AddWithValue("@Permissions", permissions);
@@ -188,28 +147,21 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        // نستخدم ExecuteNonQuery لأننا نقوم بعملية تحديث ولا ننتظر راجعاً كـ ID أو جدول
                         int rowsAffected = cmd.ExecuteNonQuery();
-
-                        // في حال نجاح التعديل ستكون الصفوف المتأثرة أكبر من 0
-                        isUpdated = (rowsAffected > 0);
+                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المستخدم رقم ({userID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {
-                        // التقاط خطأ الـ RAISERROR من السيرفر إذا كان اسم المستخدم مكرراً
-                        isUpdated = false;
-                        errMsg = ex.Message;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isUpdated; // تعيد true في حال النجاح و false في حال الفشل
         }
         /// <summary>
         /// تحديث كلمة المرور فقط (منفصلة لأواعي الأمان)
         /// </summary>
-        public static bool UpdatePassword(int userId, string newPasswordHash, out string errorMessage)
+        public static Result UpdatePassword(int userId, string newPasswordHash)
         {
-            errorMessage = string.Empty;
             string query = "UPDATE Users SET PasswordHash = @PasswordHash WHERE UserID = @UserID";
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -222,12 +174,11 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        return cmd.ExecuteNonQuery() > 0;
+                        return cmd.ExecuteNonQuery() > 0 ? Result.Success() : Result.Failure("خطأ: لا يمكن تغيير كلمة المرور!");
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = ex.Message;
-                        return false;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
@@ -235,38 +186,28 @@ namespace Acc_Trede_winForms_DataAccess
         /// </summary>
         /// Delete the user by disabling activation.
         /// <returns></returns>
-        public static bool DeleteUserSoft(int userID, out string errMsg)
+        public static Result DeleteUserSoft(int userID)
         {
-            bool isDeleted = false;
-            errMsg = string.Empty;
-
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_DeleteUserSoft", conn))
                 {
-                    // تحديد نوع الأمر كـ Stored Procedure
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير المعرف الخاص بالمستخدم المراد إيقافه
                     cmd.Parameters.AddWithValue("@UserID", userID);
 
                     try
                     {
                         conn.Open();
-                        // تنفيذ العملية ومعرفة عدد الصفوف المتأثرة
-                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return (cmd.ExecuteNonQuery() > 0) ? Result.Success() : Result.Failure("خطأ: لا يمكن حذف المستخدم حاليا!");
 
-                        // إذا تم التحديث بنجاح ستكون القيمة true
-                        isDeleted = (rowsAffected > 0);
                     }
                     catch (Exception ex)
                     {
-                        isDeleted = false;
-                        errMsg = ex.Message;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isDeleted; // تعيد true في حال النجاح و false في حال حدوث أي خلل
         }
     }
 }
