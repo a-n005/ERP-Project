@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acc_Trede_winForms_DataAccess.Global;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -10,12 +11,10 @@ namespace Acc_Trede_winForms_DataAccess
 {
     public class clsCustomers_DAL
     {
-        public static bool InsertCustomer(string customerName, string phone,
-            string taxNumber,int createdBy, out string errMsg)
+        public static Result<int> InsertCustomer(string customerName, string phone,
+            string taxNumber, int createdBy)
         {
-            bool isInserted = false;
-            errMsg = string.Empty;
-
+            int newID = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_InsertCustomer", conn))
@@ -32,28 +31,24 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        // تنفيذ عملية الإدخال
-                        int rowsAffected = cmd.ExecuteNonQuery();
-
-                        // إذا تمت العملية بنجاح ستكون الصفوف المتأثرة أكبر من 0
-                        isInserted = (rowsAffected > 0);
+                        object result = cmd.ExecuteScalar();
+                        if (result != null && int.TryParse(result.ToString(), out int insertedId))
+                        {
+                            newID = insertedId;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        // التقاط رسالة الـ RAISERROR من السيرفر إذا كان رقم الجوال مكرراً
-                        isInserted = false;
-                        errMsg = ex.Message;
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isInserted; // تعيد true في حال النجاح و false في حال الفشل
+            return (newID > 0) ? Result<int>.Success(newID) : Result<int>.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
-        public static bool UpdateCustomer(int customerID, string customerName, 
-            string phone, string taxNumber,int updatedBy, out string errMsg)
+        public static Result UpdateCustomer(int customerID, string customerName,
+            string phone, string taxNumber, int updatedBy)
         {
-            bool isUpdated = false;
-            errMsg = string.Empty;
-
+            int isUpdated = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_UpdateCustomer", conn))
@@ -71,21 +66,19 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        // تنفيذ عملية التحديث
-                        int rowsAffected = cmd.ExecuteNonQuery();
-
-                        // إذا تم التعديل بنجاح ستكون القيمة true
-                        isUpdated = (rowsAffected > 0);
+                        object result = cmd.ExecuteScalar();
+                        if (result != null && int.TryParse(result.ToString(), out int updatedID))
+                        {
+                            isUpdated = updatedID;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        // التقاط رسالة الـ RAISERROR من السيرفر إذا كان رقم الجوال مستخدماً مع عميل آخر
-                        isUpdated = false;
-                        errMsg = ex.Message;
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isUpdated; // تعيد true في حال النجاح و false في حال الفشل
+            return (isUpdated > 0) ? Result.Success() : Result.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
         public static bool DeleteCustomerSoft(int customerID, out string errMsg)
         {

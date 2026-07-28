@@ -1,20 +1,21 @@
-﻿using System;
+﻿using Acc_Trede_winForms_DataAccess.Global;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Acc_Trede_winForms_DataAccess
 {
     public class clsSuppliers_DAL
     {
-        public static bool InsertSupplier(string supplierName, string companyName,
-            string phone, string taxNumber,int createdBy, out string errMsg)
+        public static Result<int> InsertSupplier(string supplierName, string companyName,
+            string phone, string taxNumber, int createdBy)
         {
-            bool isInserted = false;
-            errMsg = string.Empty;
+            int newID = -1;
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -34,34 +35,30 @@ namespace Acc_Trede_winForms_DataAccess
                     {
                         conn.Open();
                         // تنفيذ عملية الإدخال
-                        int rowsAffected = cmd.ExecuteNonQuery();
+                        object res = cmd.ExecuteScalar();
 
-                        // إذا تمت العملية بنجاح ستكون الصفوف المتأثرة أكبر من 0
-                        isInserted = (rowsAffected > 0);
+                        newID = (res != null) && int.TryParse(res.ToString(), out int ID) ? ID : -1;
                     }
                     catch (Exception ex)
                     {
-                        isInserted = false;
-                        errMsg = ex.Message;
+
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
+
                     }
                 }
             }
-            return isInserted;
+            return (newID > 0) ? Result<int>.Success(newID) : Result<int>.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
-        public static bool UpdateSupplier(int supplierID, string supplierName,
-            string companyName, string phone, string taxNumber,int updatedBy, out string errMsg)
+        public static Result UpdateSupplier(int supplierID, string supplierName,
+            string companyName, string phone, string taxNumber, int updatedBy)
         {
-            bool isUpdated = false;
-            errMsg = string.Empty;
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_UpdateSupplier", conn))
                 {
-                    // تحديد نوع الأمر كـ Stored Procedure
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات المطلوبة للإجراء المخزن
                     cmd.Parameters.AddWithValue("@SupplierID", supplierID);
                     cmd.Parameters.AddWithValue("@SupplierName", supplierName);
                     cmd.Parameters.AddWithValue("@CompanyName", (object)companyName ?? DBNull.Value);
@@ -72,27 +69,18 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        // تنفيذ عملية التحديث
                         int rowsAffected = cmd.ExecuteNonQuery();
-
-                        // إذا تم التعديل بنجاح ستكون القيمة true
-                        isUpdated = (rowsAffected > 0);
+                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المستخدم رقم ({supplierID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {
-                        isUpdated = false;
-                        errMsg = ex.Message;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isUpdated; // تعيد true في حال النجاح و false في حال الفشل
         }
-        public static bool DeleteSupplierSoft(int supplierID, out string errMsg)
+        public static Result DeleteSupplierSoft(int supplierID)
         {
-            bool isDeleted = false;
-            errMsg = string.Empty;
-
-            // كويري مباشر لتحديث حالة المورد إلى غير نشط بدلاً من مسحه نهائياً
             string query = @"UPDATE Suppliers 
                      SET IsActive = 0 
                      WHERE SupplierID = @SupplierID";
@@ -107,23 +95,19 @@ namespace Acc_Trede_winForms_DataAccess
                     {
                         conn.Open();
                         int rowsAffected = cmd.ExecuteNonQuery();
-                        isDeleted = (rowsAffected > 0);
+                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المستخدم رقم ({supplierID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {
-                        isDeleted = false;
-                        errMsg = ex.Message;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return isDeleted;
         }
-        public static DataTable GetAllSuppliers(out string errMsg)
+        public static Result<DataTable> GetAllSuppliers()
         {
             DataTable dt = new DataTable();
-            errMsg = string.Empty;
 
-            // جلب بيانات الموردين بالتفصيل مع ترتيبهم أبجدياً حسب اسم الشركة أو المورد
             string query = @"SELECT *
                      FROM Suppliers 
                      ORDER BY CompanyName ASC, SupplierName ASC";
@@ -132,7 +116,7 @@ namespace Acc_Trede_winForms_DataAccess
             {
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    
+
                     try
                     {
                         conn.Open();
@@ -140,21 +124,19 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errMsg = ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
         }
-        public static DataTable GetSupplierByID(int supplierID, out string errMsg)
+        public static Result<DataTable> GetSupplierByID(int supplierID)
         {
             DataTable dt = new DataTable();
-            errMsg = string.Empty;
 
-            // كويري دقيق لجلب بيانات مورد واحد فقط بناءً على الـ ID
             string query = @"SELECT *
                      FROM Suppliers 
                      WHERE SupplierID = @SupplierID";
@@ -163,7 +145,6 @@ namespace Acc_Trede_winForms_DataAccess
             {
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    // تمرير الـ ID كبارامتر آمن لحماية الكويري
                     cmd.Parameters.AddWithValue("@SupplierID", supplierID);
 
                     try
@@ -173,14 +154,14 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errMsg = ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt; // سيعيد الجدول بصف واحد للمورد، أو فارغاً إذا لم يعثر على الـ ID
         }
     }
 }
