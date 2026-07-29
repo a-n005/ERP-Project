@@ -99,7 +99,7 @@ namespace Acc_Trede_winForms_Buisness
 
             return (this.Permissions & permissionToCheck) == permissionToCheck;
         }
-        public static clsUser_BLL MapFromDataRow(DataRow dr)
+        private static clsUser_BLL MapFromDataRow(DataRow dr)
         {
             return new clsUser_BLL(
                  userID: Convert.ToInt32(dr["UserID"]),

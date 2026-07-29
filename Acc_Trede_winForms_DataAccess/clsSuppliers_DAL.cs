@@ -69,8 +69,7 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المستخدم رقم ({supplierID})، قد يكون المعرف غير موجود.");
+                        return (cmd.ExecuteNonQuery() > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المورد رقم ({supplierID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {

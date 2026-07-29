@@ -82,7 +82,7 @@ namespace Acc_Trede_winForms
             return Result<clsSuppliers_BLL>.Success(supplier);
                 
         }
-        public static clsSuppliers_BLL MapFromDataRow(DataRow dr)
+        private static clsSuppliers_BLL MapFromDataRow(DataRow dr)
         {
             return new clsSuppliers_BLL(
                  supplierID: Convert.ToInt32(dr["SupplierID"]),
