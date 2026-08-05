@@ -76,7 +76,7 @@ namespace Acc_Trede_winForms
             if(res.IsFailure)
                 return Result<clsSuppliers_BLL>.Failure(res.Error);
             if(res.Value==null && res.Value.Rows.Count==0)
-                return Result<clsSuppliers_BLL>.Failure("لم يتم العثور على المستخدم المطلوب.");
+                return Result<clsSuppliers_BLL>.Failure("لم يتم العثور على المورد المطلوب.");
             DataRow dr = res.Value.Rows[0];
             clsSuppliers_BLL supplier = MapFromDataRow(dr);
             return Result<clsSuppliers_BLL>.Success(supplier);

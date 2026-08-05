@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acc_Trede_winForms_DataAccess.Global;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,82 +14,66 @@ namespace Acc_Trede_winForms_DataAccess.Database
         /// <summary>
         /// حفظ فاتورة مبيعات جديدة مع تفاصيلها وتحديث كميات المخزن وأرصدة العملاء الآجلة دفعة واحدة
         /// </summary>
-        public static int InsertSalesInvoice(
+        public static Result<int> InsertSalesInvoice(
             string invoiceNumber,
             int userID,
             int? customerID,
             decimal totalAmount,
             decimal discount,
             decimal taxAmount,
-            decimal netAmount,
             decimal cashAmount,
             decimal cardAmount,
-            DataTable salesCartDataTable, // سلة المبيعات DataTable تطابق التايب dbo.SalesCartType
-            out string errorMessage)
+            DataTable salesCartDataTable)
         {
-            int rowsAffected = 0;
-            errorMessage = string.Empty;
-
+            int newBill = -1;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand command = new SqlCommand("dbo.sp_InsertSalesInvoice", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات طبقاً للـ Stored Procedure
                     command.Parameters.AddWithValue("@InvoiceNumber", string.IsNullOrEmpty(invoiceNumber) ? (object)DBNull.Value : invoiceNumber);
                     command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@CustomerID", customerID.HasValue ? (object)customerID.Value : DBNull.Value);
                     command.Parameters.AddWithValue("@TotalAmount", totalAmount);
                     command.Parameters.AddWithValue("@Discount", discount);
                     command.Parameters.AddWithValue("@TaxAmount", taxAmount);
-                    command.Parameters.AddWithValue("@NetAmount", netAmount);
                     command.Parameters.AddWithValue("@CashAmount", cashAmount);
                     command.Parameters.AddWithValue("@CardAmount", cardAmount);
 
-                    // تمرير الـ Table-Valued Parameter (TVP) لسلة المبيعات
                     SqlParameter tvpParameter = command.Parameters.AddWithValue("@Cart", salesCartDataTable);
                     tvpParameter.SqlDbType = SqlDbType.Structured;
-                    tvpParameter.TypeName = "dbo.SalesCartType"; // يجب أن يطابق اسم الـ Type في السيرفر تماماً
+                    tvpParameter.TypeName = "dbo.SalesCartType";
 
                     try
                     {
                         connection.Open();
                         object res = command.ExecuteScalar();
-                        if(res!= null && int.TryParse(res.ToString(), out int id))
+                        if (res != null && int.TryParse(res.ToString(), out int id))
                         {
-                            rowsAffected=id;
+                            newBill = id;
                         }
-                    }
-                    catch (SqlException ex)
-                    {
-                        // اقتناص رسائل الـ RAISERROR المخصصة من الـ SQL (مثل: لا يمكن حفظ فاتورة بها متبقٍّ آجل بدون تحديد العميل!)
-                        errorMessage = ex.Message;
-                        return -1;
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = "خطأ عام في النظام: " + ex.Message;
-                        return -1;
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return rowsAffected;
+            return (newBill > 0) ? Result<int>.Success(newBill) : Result<int>.Failure("فشل إضافة فاتورة: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
 
         /// <summary>
         /// جلب جميع فواتير المبيعات المسجلة لعرضها في جدول الإدارة الرئيسي (Dashboard)
         /// </summary>
         /// <returns> I'll change to view and falg enum </returns>
-        public static DataTable GetAllSalesInvoices(out string errorMessage)
+        public static Result<DataTable> GetAllSalesInvoices()
         {
             DataTable dt = new DataTable();
-            errorMessage = string.Empty;
 
-            // استعلام يجلب البيانات الأساسية مع إظهار "عميل نقدي" إذا كان الـ CustomerID خالي
-            string query = @"SELECT SI.InvoiceID, SI.InvoiceNumber, SI.InvoiceDate, 
-                                    ISNULL(C.CustomerName, N'عميل نقدي') AS CustomerName, 
-                                    SI.NetAmount, SI.PaymentType, SI.TotalAmount, SI.Discount, SI.TaxAmount
+            string query = @"SELECT SI.InvoiceID, SI.InvoiceNumber, SI.InvoiceDate, SI.UserID,
+                                    ISNULL(C.CustomerName, N'عميل نقدي') AS CustomerName, SI.TotalAmount, SI.Discount, SI.TaxAmount, 
+                                    (TotalAmount - Discount + TaxAmount) AS NetAmount,SI.CashAmount,SI.CardAmount, SI.RemainingAmount
                              FROM SalesInvoices SI
                              LEFT JOIN Customers C ON SI.CustomerID = C.CustomerID
                              ORDER BY SI.InvoiceDate DESC";
@@ -104,14 +89,39 @@ namespace Acc_Trede_winForms_DataAccess.Database
                         {
                             if (reader.HasRows) dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = "خطأ أثناء جلب فواتير المبيعات: " + ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
+        }
+        public static Result<DataTable> FindByID(int id)
+        {
+            DataTable dt = new DataTable();
+            string query = "select * from SalesInvoices where InvoiceID=@ID";
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows) dt.Load(reader);
+                        }
+                        return Result<DataTable>.Success(dt);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Result<DataTable>.Failure(ex.Message);
+                    }
+                }
+            }
         }
     }
 }

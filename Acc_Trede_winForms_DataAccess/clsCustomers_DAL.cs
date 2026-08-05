@@ -48,7 +48,6 @@ namespace Acc_Trede_winForms_DataAccess
         public static Result UpdateCustomer(int customerID, string customerName,
             string phone, string taxNumber, int updatedBy)
         {
-            int isUpdated = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("sp_UpdateCustomer", conn))
@@ -64,11 +63,7 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         conn.Open();
-                        object result = cmd.ExecuteScalar();
-                        if (result != null && int.TryParse(result.ToString(), out int updatedID))
-                        {
-                            isUpdated = updatedID;
-                        }
+                        return (cmd.ExecuteNonQuery() > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات العميل رقم ({customerID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {
@@ -76,7 +71,6 @@ namespace Acc_Trede_winForms_DataAccess
                     }
                 }
             }
-            return (isUpdated > 0) ? Result.Success() : Result.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
         public static Result DeleteCustomerSoft(int customerID)
         {
@@ -94,7 +88,7 @@ namespace Acc_Trede_winForms_DataAccess
                     {
                         conn.Open();
                         int rowsAffected = cmd.ExecuteNonQuery();
-                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات المستخدم رقم ({customerID})، قد يكون المعرف غير موجود.");
+                        return (rowsAffected > 0) ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات العميل رقم ({customerID})، قد يكون المعرف غير موجود.");
                     }
                     catch (Exception ex)
                     {
