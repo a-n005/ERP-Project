@@ -1,4 +1,5 @@
 ﻿using Acc_Trede_winForms_DataAccess.Database;
+using Acc_Trede_winForms_DataAccess.Global;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,21 +15,18 @@ namespace Acc_Trede_winForms_DataAccess
         /// <summary>
         /// حفظ فاتورة مشتريات جديدة مع تفاصيلها وتحديث المخازن وأرصدة الموردين دفعة واحدة
         /// </summary>
-        public static int InsertPurchaseInvoice(
+        public static Result<int> InsertPurchaseInvoice(
             string supplierInvoiceNumber,
             int userID,
             int? supplierID,
             decimal totalAmount,
             decimal discount,
             decimal taxAmount,
-            decimal netAmount,
             decimal cashAmount,
             decimal cardAmount,
-            DataTable cartDataTable, // هنا نمرر سلة الأصناف كـ DataTable تطابق التايب PurchaseCartType
-            out string errorMessage)
+            DataTable cartDataTable)
         {
             int InvoiceID = -1;
-            errorMessage = string.Empty;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -43,7 +41,6 @@ namespace Acc_Trede_winForms_DataAccess
                     command.Parameters.AddWithValue("@TotalAmount", totalAmount);
                     command.Parameters.AddWithValue("@Discount", discount);
                     command.Parameters.AddWithValue("@TaxAmount", taxAmount);
-                    command.Parameters.AddWithValue("@NetAmount", netAmount);
                     command.Parameters.AddWithValue("@CashAmount", cashAmount);
                     command.Parameters.AddWithValue("@CardAmount", cardAmount);
 
@@ -52,32 +49,20 @@ namespace Acc_Trede_winForms_DataAccess
                     try
                     {
                         connection.Open();
-                        // الـ ExecuteNonQuery هنا ستعود بعدد الأسطر المتأثرة في الفواتير، التفاصيل، والمخازن
                         object result = command.ExecuteScalar();
                         if (result != null && int.TryParse(result.ToString(), out int id))
                             InvoiceID = id;
                     }
-                    catch (SqlException ex)
-                    {
-                        // اقتناص رسائل الـ RAISERROR المخصصة مثل: (خطأ: لا يمكن إدخال مبالغ سالبة!)
-                        errorMessage = ex.Message;
-                        return -1;
-                    }
                     catch (Exception ex)
                     {
-                        errorMessage = "خطأ عام في النظام: " + ex.Message;
-                        return -1;
+                        return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-
-            // بما أن العملية تحتوي على Insert و Update لجداول متعددة، فإذا نجحت سيكون الـ rowsAffected أكبر من 0 حتماً
-            return InvoiceID;
+            return (InvoiceID > 0) ? Result<int>.Success(InvoiceID) : Result<int>.Failure("فشل إضافة فاتورة: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
-        public static bool UpdateInvoiceWithSupplierID(int invoiceID, int supplierID, out string errMsg)
+        public static Result UpdateInvoiceWithSupplierID(int invoiceID, int? supplierID)
         {
-
-            errMsg = string.Empty;
             int rowAffected = -1;
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -86,7 +71,7 @@ namespace Acc_Trede_winForms_DataAccess
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@PurchaseInvoiceID", invoiceID);
-                    cmd.Parameters.AddWithValue("@SupplierID", supplierID);
+                    cmd.Parameters.AddWithValue("@SupplierID", (object)supplierID ?? DBNull.Value);
                     try
                     {
                         conn.Open();
@@ -96,24 +81,21 @@ namespace Acc_Trede_winForms_DataAccess
                     }
                     catch (Exception ex)
                     {
-                        errMsg = ex.Message;
-                        return false;
+                        return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return rowAffected > 0;
+            return rowAffected > 0 ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات الفاتورة رقم ({invoiceID})، قد يكون المعرف غير موجود.");
         }
         /// <summary>
         /// جلب قائمة بجميع فواتير المشتريات المسجلة في النظام (البيانات الأساسية للرأس)
         /// </summary>
-        public static DataTable GetAllPurchaseInvoices(out string errorMessage)
+        public static Result<DataTable> GetAllPurchaseInvoices()
         {
             DataTable dt = new DataTable();
-            errorMessage = string.Empty;
 
-            // استعلام يجلب الفواتير مع اسم المورد بدلاً من معرّفه الرقمي لراحة المستخدم
             string query = @"SELECT PI.PurchaseInvoiceID, PI.SupplierInvoiceNumber, PI.InvoiceDate, 
-                            S.SupplierName, PI.NetAmount, PI.PaymentType, PI.TotalAmount, PI.Discount, PI.TaxAmount
+                            S.SupplierName, (TotalAmount - Discount + TaxAmount) AS NetAmount, PI.PaymentType, PI.TotalAmount, PI.Discount, PI.TaxAmount
                      FROM PurchaseInvoices PI
                      LEFT JOIN Suppliers S ON PI.SupplierID = S.SupplierID
                      ORDER BY PI.InvoiceDate DESC";
@@ -129,21 +111,20 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             if (reader.HasRows) dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = "خطأ أثناء جلب فواتير المشتريات: " + ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
         }
 
-        public static DataTable GetPurchaseInvoiceByID(int purchaseInvoiceID, out string errorMessage)
+        public static Result<DataTable> GetPurchaseInvoiceByID(int purchaseInvoiceID)
         {
             DataTable dt = new DataTable();
-            errorMessage = string.Empty;
-            string query = "select * from purchaseInvoices where purchaseInvoiceID = @PurchaseInvoiceID";
+            string query = "select *,(TotalAmount - Discount + TaxAmount) AS NetAmount from purchaseInvoices where purchaseInvoiceID = @PurchaseInvoiceID";
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 using (SqlCommand command = new SqlCommand(query, connection))
@@ -156,11 +137,14 @@ namespace Acc_Trede_winForms_DataAccess
                         {
                             if (reader.HasRows) dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
-                    catch (Exception ex) { errorMessage = "خطأ أثناء جلب فواتير المشتريات: " + ex.Message; }
+                    catch (Exception ex)
+                    {
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
+                    }
                 }
             }
-            return dt;
         }
     }
 }

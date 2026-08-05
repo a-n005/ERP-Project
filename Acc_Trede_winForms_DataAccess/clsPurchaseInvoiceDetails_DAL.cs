@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acc_Trede_winForms_DataAccess.Global;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,12 +14,10 @@ namespace Acc_Trede_winForms_DataAccess.Database
         /// <summary>
         /// جلب جميع الأسطر والأصناف التابعة لفاتورة مشتريات معينة عبر الـ InvoiceID
         /// </summary>
-        public static DataTable GetDetailsByInvoiceID(int invoiceID, out string errorMessage)
+        public static Result<DataTable> GetDetailsByInvoiceID(int invoiceID)
         {
             DataTable dt = new DataTable();
-            errorMessage = string.Empty;
 
-            // استعلام يجلب تفاصيل الأصناف مع جلب اسم المنتج وكوده للواجهات
             string query = @"SELECT D.PurchaseDetailID, D.InvoiceID, D.ProductID, 
                                     P.Barcode, P.ProductName, D.Quantity, D.UnitPrice,
                                     (D.Quantity * D.UnitPrice) AS TotalLinePrice
@@ -39,16 +38,15 @@ namespace Acc_Trede_winForms_DataAccess.Database
                         {
                             if (reader.HasRows) dt.Load(reader);
                         }
+                        return Result<DataTable>.Success(dt);
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = "خطأ أثناء جلب تفاصيل الأصناف للفاتورة: " + ex.Message;
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }
-            return dt;
         }
-
         public static SqlParameter InsertCart(DataTable dt)
         {
             SqlParameter tvpParameter = new SqlParameter();
