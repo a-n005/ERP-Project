@@ -51,6 +51,9 @@
   <ItemGroup>
     <Compile Include="clsCustomers_BLL.cs" />
     <Compile Include="clsProducts_BLL.cs" />
+    <Compile Include="clsPurchaseInvoiceDetails_BLL.cs" />
+    <Compile Include="clsPurchaseInvoices_BLL.cs" />
+    <Compile Include="clsSalesInvoiceDetails_BLL.cs" />
     <Compile Include="clsSalesInvoices_BLL.cs" />
     <Compile Include="clsSuppliers_BLL.cs" />
     <Compile Include="clsUser_BLL.cs" />
