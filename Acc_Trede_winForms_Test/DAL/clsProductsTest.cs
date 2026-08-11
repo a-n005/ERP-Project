@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess;
+﻿using Acc_Trede_winForms_DataAccess.Inventory;
+using Acc_Trade_Core;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,14 +22,14 @@ namespace Acc_Trede_winForms_Test.DAL
             //string errMsg;
 
             // Act: استدعاء الدالة بنفس الترتيب
-            bool isInsert = clsProducts_DAL.InsertProduct(barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, createdby, out string errMsg);
+            var isInsert = clsProducts_DAL.InsertProduct(barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, createdby);
 
             // Assert: التحقق من النتائج
             // 1. نتأكد أن السيرفر نجح في الإدخال وأعاد معرّفاً تلقائياً أكبر من 0
-            Assert.True(isInsert, $"فشل إدخال المستخدم {productname}. رسالة الخطأ المرتجعة: {errMsg}");
+            Assert.True(isInsert.IsSuccess, $"فشل إدخال المستخدم {productname}. رسالة الخطأ المرتجعة: {isInsert.Error}");
 
             // 2. نتأكد أن رسالة الخطأ فارغة تماماً
-            Assert.True(string.IsNullOrEmpty(errMsg), $"حدث خطأ غير متوقع: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(isInsert.Error), $"حدث خطأ غير متوقع: {isInsert.Error}");
         }
         [Theory]
         [InlineData("sys-50005-7", "name", 1.99, 2.99, 15, 6, 5)]
@@ -40,14 +41,14 @@ namespace Acc_Trede_winForms_Test.DAL
             //string errMsg;
 
             // Act: استدعاء الدالة بنفس الترتيب
-            bool isInsert = clsProducts_DAL.InsertProduct(barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, createdby, out string errMsg);
+            var isInsert = clsProducts_DAL.InsertProduct(barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, createdby);
 
             // Assert: التحقق من النتائج
             // 1. نتأكد أن السيرفر نجح في الإدخال وأعاد معرّفاً تلقائياً أكبر من 0
-            Assert.False(isInsert, $"فشل إدخال المستخدم {""}. رسالة الخطأ المرتجعة: {errMsg}");
+            Assert.False(isInsert.IsSuccess, $"فشل إدخال المستخدم {""}. رسالة الخطأ المرتجعة: {isInsert.Error}");
 
             // 2. نتأكد أن رسالة الخطأ فارغة تماماً
-            Assert.False(string.IsNullOrEmpty(errMsg), $"حدث خطأ غير متوقع: {errMsg}");
+            Assert.False(string.IsNullOrEmpty(isInsert.Error), $"حدث خطأ غير متوقع: {isInsert.Error}");
         }
         // Update cases
         [Theory]
@@ -57,10 +58,10 @@ namespace Acc_Trede_winForms_Test.DAL
         public void UpdateProducts_MultipleUpdated_ShouldUpdatedSuccessfully(
           int id, string barcode, string productname, decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert, int updatedBy)
         {
-            var x = clsProducts_DAL.UpdateProduct(id, barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, updatedBy, out string errMsg);
+            var x = clsProducts_DAL.UpdateProduct(id, barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, updatedBy);
 
-            Assert.True(x, $"Udate failed: {errMsg}");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Update failed: {errMsg}");
+            Assert.True(x.IsSuccess, $"Udate failed: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Update failed: {x.Error}");
         }
         [Theory]
         [InlineData(3, "sys-50005-20", "x2", 19, 32.99, 57, 6, 0)]// this user not exists
@@ -68,30 +69,30 @@ namespace Acc_Trede_winForms_Test.DAL
         public void UpdateProducts_MultipleCases_ShouldUpdatedFailed(
           int id, string barcode, string productname, decimal costPrice, decimal salePrice, int stockQuantity, int minStockAlert, int updatedBy)
         {
-            var x = clsProducts_DAL.UpdateProduct(id, barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, updatedBy, out string errMsg);
+            var x = clsProducts_DAL.UpdateProduct(id, barcode, productname, costPrice, salePrice, stockQuantity, minStockAlert, updatedBy);
 
-            Assert.False(x, $"Udate failed: {errMsg}");
-            Assert.False(string.IsNullOrEmpty(errMsg), $"Update failed: {errMsg}");
+            Assert.False(x.IsSuccess, $"Udate failed: {x.Error}");
+            Assert.False(string.IsNullOrEmpty(x.Error), $"Update failed: {x.Error}");
         }
         // Get products
         [Fact]
         public void GetLowStockProducts_ReturnDtWithRecurd_ShouldReturnSuccessfully()
         {
-            var x = clsProducts_DAL.GetLowStockProducts(out string err);
+            var x = clsProducts_DAL.GetLowStockProducts();
 
-            Assert.True(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetAllProducts_ReturnDtWithRecurd_ShouldReturnSuccess()
         {
-            var x = clsProducts_DAL.GetAllProducts(out string err);
+            var x = clsProducts_DAL.GetAllProducts();
 
-            Assert.True(x.Rows.Count > 0, $"Error: {err}");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-            Assert.Equal("sys-50005-7", x.Rows[0].Field<string>("Barcode").Trim());
+            Assert.Equal("sys-50005-7", x.Value.Rows[0].Field<string>("Barcode").Trim());
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Theory]
         [InlineData(1)]
@@ -99,37 +100,37 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(3)]
         public void GetProductByID_ReturnDtWithRecurd_ShouldReturnSuccessfully(int productID)
         {
-            var x = clsProducts_DAL.GetProductByID(productID, out string err);
+            var x = clsProducts_DAL.GetProductByID(productID);
 
-            Assert.True(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetProductByID_ReturnDtWithRecurd_ShouldReturnFailed()
         {
-            var x = clsProducts_DAL.GetProductByID(0, out string err);
+            var x = clsProducts_DAL.GetProductByID(0);
 
-            Assert.False(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.False(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Theory]
         [InlineData("sys-50005-18")]
         [InlineData("sys-50005-19")]
         public void GetProductByBarcode_ReturnDtWithRecurds_ShouldReturnSuccess(string barcode)
         {
-            var x = clsProducts_DAL.GetProductByBarcode(barcode, out string err);
+            var x = clsProducts_DAL.GetProductByBarcode(barcode);
             string s = barcode == "sys-50005-19" ? "sys-50005-19" : "sys-50005-18";
-            Assert.True(x.Rows.Count > 0, $"Error: {err}");
-            Assert.Equal(s, x.Rows[0].Field<string>("Barcode"));
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.Equal(s, x.Value.Rows[0].Field<string>("Barcode"));
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetProductByBarcode_Null_Failed()
         {
-            var x = clsProducts_DAL.GetProductByBarcode("", out string err);
+            var x = clsProducts_DAL.GetProductByBarcode("");
 
-            Assert.False(x.Rows.Count < 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.False(x.Value.Rows.Count < 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         // Delete Product
         [Theory]
@@ -138,9 +139,9 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(3, 6)]
         public void DeleteProductSoft_MultipleDelete_ShouldSuccessfully(int id, int updatedby)
         {
-            var x = clsProducts_DAL.DeleteProductSoft(id, updatedby, out string errorMessage);
-            Assert.True(x, $"Error: {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error, msg: {errorMessage}");
+            var x = clsProducts_DAL.DeleteProductSoft(id, updatedby);
+            Assert.True(x.IsSuccess, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error, msg: {x.Error}");
         }
     }
 }

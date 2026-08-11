@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess;
+﻿using Acc_Trede_winForms_DataAccess.Purchases;
+using Acc_Trade_Core;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -59,11 +60,11 @@ namespace Acc_Trede_winForms_Test.DAL
             DataTable cartDataTable) // هنا نمرر سلة الأصناف كـ DataTable تطابق التايب PurchaseCartType )
         {
 
-            int id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
-                totalAmount, discount, taxAmount, netAmount, cashAmount, cardAmount, cartDataTable, out string errorMessage);
+            var id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
+                totalAmount, discount, taxAmount, cashAmount, cardAmount, cartDataTable);
 
-            Assert.True(id > 0, $"Error: {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error with msg: {errorMessage}");
+            Assert.True(id.Value > 0, $"Error: {id.Error}");
+            Assert.True(string.IsNullOrEmpty(id.Error), $"Error with msg: {id.Error}");
         }
         public static IEnumerable<object[]> GetPurchaseInvoiceTestData1()
         {
@@ -100,22 +101,21 @@ namespace Acc_Trede_winForms_Test.DAL
           DataTable cartDataTable) // هنا نمرر سلة الأصناف كـ DataTable تطابق التايب PurchaseCartType )
         {
 
-            int id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
-                totalAmount, discount, taxAmount, netAmount,
-                cashAmount, cardAmount, cartDataTable, out string errorMessage);
+            var id = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(supplierInvoiceNumber, userID, supplierID,
+                totalAmount, discount, taxAmount, cashAmount, cardAmount, cartDataTable);
 
-            Assert.False(id > 0, $"Error: {errorMessage}");
-            Assert.False(string.IsNullOrEmpty(errorMessage), $"Error with msg: {errorMessage}");
+            Assert.False(id.Value > 0, $"Error: {id.Error}");
+            Assert.False(string.IsNullOrEmpty(id.Error), $"Error with msg: {id.Error}");
         }
         [Theory]
         [InlineData(11,4)]
         [InlineData(14,4)]
        public void UpdateInvoiceWithSupplierID_Multiple_Successfully(int invoiceID, int supplierID)
         {
-            bool x = clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(invoiceID, supplierID, out string errMsg);
+            var x = clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(invoiceID, supplierID);
 
-            Assert.True(x, $"Error: {errMsg}");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+            Assert.True(x.IsSuccess, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error with msg: {x.Error}");
         }
         [Theory]
         [InlineData(0,2)]
@@ -123,37 +123,37 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(1,3)]
         public void UpdateInvoiceWithSupplierID_Multiple_Failed(int invoiceID, int supplierID)
         {
-            bool x = clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(invoiceID, supplierID, out string errMsg);
+            var x = clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(invoiceID, supplierID);
 
-            Assert.False(x, $"Error: {errMsg}");
-            Assert.False(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+            Assert.False(x.IsSuccess, $"Error: {x.Error}");
+            Assert.False(string.IsNullOrEmpty(x.Error), $"Error with msg: {x.Error}");
         }
         [Fact]
         public void GetAllPurchaseInvoices()
         {
-            var x= clsPurchaseInvoices_DAL.GetAllPurchaseInvoices(out string  errMsg);
-            bool r = x.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "525");
-            Assert.True(x.Rows.Count > 0, $"Error: {errMsg}");
+            var x= clsPurchaseInvoices_DAL.GetAllPurchaseInvoices();
+            bool r = x.Value.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "525");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
             Assert.True(r, "Error: not found 525");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg : {errMsg}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error with msg : {x.Error}");
         }
         [Fact]
         public void GetPurchaseInvoiceByID_ReturnDtWithRecord_Success()
         {
-            var x= clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(purchaseInvoiceID: 1, out string errMsg);
-            bool r = x.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "524");
-            Assert.True(x.Rows.Count > 0, $"Error: {errMsg}");
+            var x= clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(purchaseInvoiceID: 1);
+            bool r = x.Value.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "524");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
             Assert.True(r, "Error: not found 524");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg : {errMsg}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error with msg : {x.Error}");
         }
         [Fact]
         public void GetPurchaseInvoiceByID_ReturnDtWithRecord_Failed()
         {
-            var x = clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(purchaseInvoiceID: 0, out string errMsg);
-            bool r = x.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "524");
-            Assert.False(x.Rows.Count > 0, $"Error: {errMsg}");
+            var x = clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(purchaseInvoiceID: 0);
+            bool r = x.Value.AsEnumerable().Any(row => row.Field<string>("SupplierInvoiceNumber") == "524");
+            Assert.False(x.Value.Rows.Count > 0, $"Error: {x.Error}");
             Assert.False(r, "Error: not found 524");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg : {errMsg}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error with msg : {x.Error}");
         }
     }
 }

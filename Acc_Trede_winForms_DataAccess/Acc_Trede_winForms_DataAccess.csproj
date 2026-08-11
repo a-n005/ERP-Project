@@ -53,21 +53,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="clsCustomers_DAL.cs" />
-    <Compile Include="clsDataAccessSettings.cs" />
-    <Compile Include="clsFinancialTransactions_DAL.cs" />
-    <Compile Include="clsGenericDataAccessBase_DAL.cs" />
-    <Compile Include="clsProducts_DAL.cs" />
-    <Compile Include="clsPurchaseInvoices_DAL.cs" />
-    <Compile Include="clsPurchaseReturn_DAL.cs" />
-    <Compile Include="clsPurchaseReturnDetails_DAL.cs" />
-    <Compile Include="clsSalesReturnDetails_DAL.cs" />
-    <Compile Include="clsSalesReturn_DAL.cs" />
-    <Compile Include="clsSuppliers_DAL.cs" />
-    <Compile Include="clsUsers_DAL.cs" />
-    <Compile Include="clsPurchaseInvoiceDetails_DAL.cs" />
-    <Compile Include="clsSalesInvoiceDetails_DAL.cs" />
-    <Compile Include="clsSalesInvoices_DAL.cs" />
+    <Compile Include="Entities\clsCustomers_DAL.cs" />
+    <Compile Include="Global\clsDataAccessSettings.cs" />
+    <Compile Include="Finance\clsFinancialTransactions_DAL.cs" />
+    <Compile Include="Global\clsGenericDataAccessBase_DAL.cs" />
+    <Compile Include="Inventory\clsProducts_DAL.cs" />
+    <Compile Include="Purchases\clsPurchaseInvoices_DAL.cs" />
+    <Compile Include="Purchases\clsPurchaseReturn_DAL.cs" />
+    <Compile Include="Purchases\clsPurchaseReturnDetails_DAL.cs" />
+    <Compile Include="Sales\clsSalesReturnDetails_DAL.cs" />
+    <Compile Include="Sales\clsSalesReturn_DAL.cs" />
+    <Compile Include="Entities\clsSuppliers_DAL.cs" />
+    <Compile Include="UserManagement\clsUsers_DAL.cs" />
+    <Compile Include="Purchases\clsPurchaseInvoiceDetails_DAL.cs" />
+    <Compile Include="Sales\clsSalesInvoiceDetails_DAL.cs" />
+    <Compile Include="Sales\clsSalesInvoices_DAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -131,5 +131,6 @@
       <Name>Acc_Trade_Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

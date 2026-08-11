@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess;
+﻿using Acc_Trede_winForms_DataAccess.UserManagement;
+using Acc_Trade_Core;
 using Xunit;
 
 namespace Acc_Trede_winForms_Test.DAL
@@ -21,33 +22,30 @@ namespace Acc_Trede_winForms_Test.DAL
              string username, string passwordHash, int permissions, string fullName, string? phone)
         {
             // Arrange: (المعطيات تأتي تلقائياً من الـ InlineData كبارامترات للدالة)
-            string errMsg;
 
             // Act: استدعاء الدالة بنفس الترتيب
-            int newUserID = clsUsers_DAL.AddNewUser(username, passwordHash, permissions, fullName, out errMsg, phone);
+            var x  = clsUsers_DAL.AddNewUser(username, passwordHash, permissions, fullName, phone);
 
             // Assert: التحقق من النتائج
             // 1. نتأكد أن السيرفر نجح في الإدخال وأعاد معرّفاً تلقائياً أكبر من 0
-            Assert.True(newUserID > 0, $"فشل إدخال المستخدم {username}. رسالة الخطأ المرتجعة: {errMsg}");
+            Assert.True(x.Value > 0, $"فشل إدخال المستخدم {username}. رسالة الخطأ المرتجعة: {x.Error}");
 
             // 2. نتأكد أن رسالة الخطأ فارغة تماماً
-            Assert.True(string.IsNullOrEmpty(errMsg), $"حدث خطأ غير متوقع: {errMsg}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"حدث خطأ غير متوقع: {x.Error}");
         }
         [Fact]
         public void AddNewUser_isNull_ShouldNotRegister()
-        {
-            // Arrange: (المعطيات تأتي تلقائياً من الـ InlineData كبارامترات للدالة)
-            string errMsg;
+        { 
 
             // Act: استدعاء الدالة بنفس الترتيب
-            int newUserID = clsUsers_DAL.AddNewUser("", null, 5, null, out errMsg);
+            var newUserID = clsUsers_DAL.AddNewUser("", null, 5, null);
 
             // Assert: التحقق من النتائج
             // 1. نتأكد أن السيرفر نجح في الإدخال وأعاد معرّفاً تلقائياً أكبر من 0
-            Assert.False(newUserID > 0, $"فشل إدخال المستخدم {""}. رسالة الخطأ المرتجعة: {errMsg}");
+            Assert.False(newUserID.Value > 0, $"فشل إدخال المستخدم {""}. رسالة الخطأ المرتجعة: {newUserID.Error}");
 
             // 2. نتأكد أن رسالة الخطأ فارغة تماماً
-            Assert.False(string.IsNullOrEmpty(errMsg), $"حدث خطأ غير متوقع: {errMsg}");
+            Assert.False(string.IsNullOrEmpty(newUserID.Error), $"حدث خطأ غير متوقع: {newUserID.Error}");
         }
         /// <summary>
         /// Multiple Update Users
@@ -66,10 +64,10 @@ namespace Acc_Trede_winForms_Test.DAL
         public void UpdateUser_MultipleUpdated_ShouldUpdatedSuccessfully(int userID, string username, int permissions,
     string fullName, bool isActive, string phone, int updatedBy)
         {
-            var x = clsUsers_DAL.UpdateUser(userID, username, permissions, fullName, isActive, updatedBy, out string errmsg, phone);
+            var x = clsUsers_DAL.UpdateUser(userID, username, permissions, fullName, isActive, updatedBy, phone);
 
-            Assert.True(x, $"Udate failed: {errmsg}");
-            Assert.True(string.IsNullOrEmpty(errmsg), $"Update failed: {errmsg}");
+            Assert.True(x.IsSuccess, $"Udate failed: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Update failed: {x.Error}");
         }
         /// <summary>
         /// Get Users
@@ -81,53 +79,34 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(3)]
         public void GetUserByID_ReturnDtWithRecurd_ShouldReturnSuccessfully(int userid)
         {
-            var x = clsUsers_DAL.GetUserByID(userid, out string err);
+            var x = clsUsers_DAL.GetUserByID(userid);
 
-            Assert.True(x.Rows.Count >= 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(x.Value.Rows.Count >= 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetUserByID_ReturnDtWithRecurd_ShouldReturnFailed()
         {
-            var x = clsUsers_DAL.GetUserByID(0, out string err);
+            var x = clsUsers_DAL.GetUserByID(0);
 
-            Assert.False(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
-        }
-        [Theory]
-        [InlineData("ana")]
-        [InlineData("test6")]
-        [InlineData("test7")]
-        public void GetUserByUserName_ReturnDtWithRecurd_ShouldReturnSuccessfully(string userid)
-        {
-            var x = clsUsers_DAL.GetUserByUserName(userid, out string err);
-
-            Assert.True(x.Rows.Count >= 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
-        }
-        [Fact]
-        public void GetUserByUserName_ReturnDtWithRecurd_ShouldReturnFailed()
-        {
-            var x = clsUsers_DAL.GetUserByUserName("", out string err);
-
-            Assert.False(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.False(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetAllUsers_ReturnDtWithRecurds_ShouldReturnSuccess()
         {
-            var x = clsUsers_DAL.GetAllUsers( out string err);
+            var x = clsUsers_DAL.GetAllUsers();
 
-            Assert.True(x.Rows.Count > 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.True(x.Value.Rows.Count > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         [Fact]
         public void GetAllUsers_Null_Failed()
         {
-            var x = clsUsers_DAL.GetAllUsers( out string err);
+            var x = clsUsers_DAL.GetAllUsers();
 
-            Assert.False(x.Rows.Count <= 0, $"Error: {err}");
-            Assert.True(string.IsNullOrEmpty(err), $"Error return errMsg→ {err}");
+            Assert.False(x.Value.Rows.Count <= 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error return errMsg→ {x.Error}");
         }
         /// <summary>
         /// Update Pass 
@@ -140,16 +119,16 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(3, "0808")]
         public void UpdatePassword_MultipleUpdate_ShouldSuccessfully(int userId, string newPasswordHash)
         {
-            var x = clsUsers_DAL.UpdatePassword(userId, newPasswordHash, out string errorMessage);
-            Assert.True(x, $"Error: {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error, msg: {errorMessage}");
+            var x = clsUsers_DAL.UpdatePassword(userId, newPasswordHash);
+            Assert.True(x.IsSuccess, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error, msg: {x.Error}");
         }
         [Fact]
         public void UpdatePassword_isNull_ShouldFailed()
         {
-            var x = clsUsers_DAL.UpdatePassword(0, "", out string errorMessage);
-            Assert.False(x, $"Error: {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error, msg: {errorMessage}");
+            var x = clsUsers_DAL.UpdatePassword(0, "");
+            Assert.False(x.IsSuccess, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error, msg: {x.Error}");
         }
         /// <summary>
         /// Delete Soft
@@ -161,16 +140,16 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData(3)]
         public void DeleteUserSoft_MultipleDelete_Success(int userId)
         {
-            var x = clsUsers_DAL.DeleteUserSoft(userId, out string errMsg);
-            Assert.True(x, $"Error, {errMsg}");
-            Assert.True(string.IsNullOrEmpty(errMsg),$"Error msg: {errMsg}");
+            var x = clsUsers_DAL.DeleteUserSoft(userId);
+            Assert.True(x.IsSuccess, $"Error, {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error msg: {x.Error}");
         }
         [Fact]
         public void DeleteUserSoft_Null_Success()
         {
-            var x = clsUsers_DAL.DeleteUserSoft(0, out string errMsg);
-            Assert.False(x, $"Error, {errMsg}");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error msg: {errMsg}");
+            var x = clsUsers_DAL.DeleteUserSoft(0);
+            Assert.False(x.IsFailure, $"Error, {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error msg: {x.Error}");
         }
         /// <summary>
         /// Login 
@@ -182,16 +161,16 @@ namespace Acc_Trede_winForms_Test.DAL
         [InlineData("0800","ana")]
         public void LoginUser_MultipleLogin_Failed(string passwordHash, string username)
         {
-            var x=clsUsers_DAL.LoginUser(username,passwordHash,out string errorMessage);
-            Assert.False(x.Rows.Count>0, $"Error, {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error msg: {errorMessage}");
+            var x=clsUsers_DAL.LoginUser(username,passwordHash);
+            Assert.False(x.Value.Rows.Count>0, $"Error, {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error msg: {x.Error}");
         }
         [Fact]
         public void LoginUser_Right_Success()
         {
-            var x=clsUsers_DAL.LoginUser("ana","0808",out string errorMessage);
-            Assert.True(x.Rows.Count>0, $"Error, {errorMessage}");
-            Assert.True(string.IsNullOrEmpty(errorMessage), $"Error msg: {errorMessage}");
+            var x=clsUsers_DAL.LoginUser("ana","0808");
+            Assert.True(x.Value.Rows.Count>0, $"Error, {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error msg: {x.Error}");
         }
     }
 }

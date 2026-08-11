@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess;
+﻿using Acc_Trede_winForms_DataAccess.Finance;
+using Acc_Trade_Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,9 @@ namespace Acc_Trede_winForms_Test.DAL
        int? purchaseReturnInvoiceID)
         {
             var x = clsFinancialTransactions_DAL.InsertReceiptVoucher(voucherNumber, amount, paymentMethod, customerID,
-                supplierID, notes, userID, saleInvoiceID,purchaseReturnInvoiceID, out string errMsg);
-            Assert.True(x > 0, "Error: " + errMsg);
-            Assert.True(string.IsNullOrEmpty(errMsg), "Error with msg: " + errMsg);
+                supplierID, notes, userID, saleInvoiceID,purchaseReturnInvoiceID);
+            Assert.True(x.IsSuccess , "Error: " + x.Error);
+            Assert.True(string.IsNullOrEmpty(x.Error), "Error with msg: " + x.Error);
         }
 
         [Theory]
@@ -44,9 +45,9 @@ namespace Acc_Trede_winForms_Test.DAL
             int? purchaseInvoiceID)
         {
             var x = clsFinancialTransactions_DAL.InsertPaymentVoucher(voucherNumber,amount, paymentMethod, customerID,
-                supplierID, notes, userID,saleReturnInvoiceID, purchaseInvoiceID, out string errMsg);
-            Assert.True(x > 0, "Error: " + errMsg);
-            Assert.True(string.IsNullOrEmpty(errMsg), "Error with msg: " + errMsg);
+                supplierID, notes, userID,saleReturnInvoiceID, purchaseInvoiceID);
+            Assert.True(x.Value > 0, "Error: " + x.Error);
+            Assert.True(string.IsNullOrEmpty(x.Error), "Error with msg: " + x.Error);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess.Database;
+﻿using Acc_Trede_winForms_DataAccess.Sales;
+using Acc_Trade_Core
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -52,15 +53,15 @@ namespace Acc_Trede_winForms_Test.DAL
         [MemberData(nameof(GetSalesInvoiceTestData))]
         public void InsertSalesInvoice_Multiple_Success(
          string invoiceNumber, int userID, int? customerID,
-         decimal totalAmount, decimal discount, decimal taxAmount, decimal netAmount,
+         decimal totalAmount, decimal discount, decimal taxAmount,
          decimal cashAmount, decimal cardAmount, DataTable salesCartDataTable)
         {
             var x = clsSalesInvoices_DAL.InsertSalesInvoice(invoiceNumber, userID, customerID,
-                totalAmount, discount, taxAmount, netAmount, cashAmount, cardAmount, salesCartDataTable, out string errMsg);
+                totalAmount, discount, taxAmount, cashAmount, cardAmount, salesCartDataTable);
             _outputHelper.WriteLine("The value: " + x.ToString());
-            _outputHelper.WriteLine(errMsg ?? "The msg is null.");
-            Assert.True(x > 0, "Error: " + errMsg);
-            Assert.True(string.IsNullOrEmpty(errMsg), "Error with msg: " + errMsg);
+            _outputHelper.WriteLine(x.Error ?? "The msg is null.");
+            Assert.True(x.Value > 0, "Error: " + x.Error);
+            Assert.True(string.IsNullOrEmpty(x.Error), "Error with msg: " + x.Error);
         }
         public static IEnumerable<object[]> GetSalesInvoiceTestData1()
         {
@@ -87,15 +88,15 @@ namespace Acc_Trede_winForms_Test.DAL
         [MemberData(nameof(GetSalesInvoiceTestData1))]
         public void InsertSalesInvoice_Multiple_Failed(
          string invoiceNumber, int userID, int? customerID,
-         decimal totalAmount, decimal discount, decimal taxAmount, decimal netAmount,
+         decimal totalAmount, decimal discount, decimal taxAmount,
          decimal cashAmount, decimal cardAmount, DataTable salesCartDataTable)
         {
             var x = clsSalesInvoices_DAL.InsertSalesInvoice(invoiceNumber, userID, customerID,
-                totalAmount, discount, taxAmount, netAmount, cashAmount, cardAmount, salesCartDataTable, out string errMsg);
+                totalAmount, discount, taxAmount, cashAmount, cardAmount, salesCartDataTable);
             _outputHelper.WriteLine("The value: " + x.ToString());
-            _outputHelper.WriteLine(errMsg ?? "The msg is null.");
-            Assert.False(x > 0, "Error: " + errMsg);
-            Assert.False(string.IsNullOrEmpty(errMsg), "Error with msg: " + errMsg);
+            _outputHelper.WriteLine(x.Error ?? "The msg is null.");
+            Assert.False(x.Value > 0, "Error: " + x.Error);
+            Assert.False(string.IsNullOrEmpty(x.Error), "Error with msg: " + x.Error);
         }
 
     }

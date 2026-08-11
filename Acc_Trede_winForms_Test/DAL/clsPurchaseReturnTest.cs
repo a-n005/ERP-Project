@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms_DataAccess;
+﻿using Acc_Trede_winForms_DataAccess.Purchases;
+using Acc_Trade_Core;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -60,9 +61,9 @@ namespace Acc_Trede_winForms_Test.DAL
           decimal? cardAmount,
           DataTable purchaseReturnCart)
         {
-            var x = clsPurchaseReturn_DAL.InsertPurchaseReturn(invoiceID, returnNumber, supplier, totalAmount, taxAmount, netAmount, notes, userID, cashAmount, cardAmount, purchaseReturnCart, out string errMsg);
-            Assert.True(x > 0, $"Error: {errMsg}");
-            Assert.True(string.IsNullOrEmpty(errMsg), $"Error with msg: {errMsg}");
+            var x = clsPurchaseReturn_DAL.InsertPurchaseReturn(invoiceID, returnNumber, supplier, totalAmount, taxAmount, notes, userID, cashAmount, cardAmount, purchaseReturnCart);
+            Assert.True(x.Value > 0, $"Error: {x.Error}");
+            Assert.True(string.IsNullOrEmpty(x.Error), $"Error with msg: {x.Error}");
         }
     }
 }
