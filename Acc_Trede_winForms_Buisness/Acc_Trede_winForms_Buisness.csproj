@@ -58,6 +58,7 @@
     <Compile Include="Sales\clsSalesInvoiceDetails_BLL.cs" />
     <Compile Include="Sales\clsSalesInvoices_BLL.cs" />
     <Compile Include="Entities\clsSuppliers_BLL.cs" />
+    <Compile Include="Sales\clsSalesReturn_BLL.cs" />
     <Compile Include="UserManagement\clsUser_BLL.cs" />
     <Compile Include="Global\Global.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
