@@ -25,10 +25,9 @@ namespace Acc_Trede_winForms_DataAccess.Sales
         {
             DataTable dt = new DataTable();
 
-            string query = @"SELECT D.DetailID, D.InvoiceID, D.ProductID, 
+            string query = @"SELECT D.ReturnDetailID,D.DetailID, D.ReturnID, D.ProductID, 
                                     P.Barcode, P.ProductName, D.Quantity, D.UnitPrice,
-                                    D.CostPriceAtSale,
-                                    (D.Quantity * D.UnitPrice) AS TotalLinePrice
+                                    D.LineTotal
                              FROM SalesReturnDetails D
                              INNER JOIN Products P ON D.ProductID = P.ProductID
                              WHERE D.ReturnID = @ReturnID";
