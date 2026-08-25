@@ -1,19 +1,26 @@
-﻿using Acc_Trede_winForms_Buisness.Sales;
+﻿using Acc_Trede_winForms_Buisness.Purchases;
 using FluentValidation;
 using Global;
 
-namespace Acc_Trede_winForms_Buisness.Validation.Sales
+namespace Acc_Trede_winForms_Buisness.Validation.Purchases
 {
-    public class clsSalesReturnValidator: AbstractValidator<clsSalesReturn_BLL>
+    public class clsPurchaseInvoicesValidator : AbstractValidator<clsPurchaseInvoices_BLL>
     {
-        public clsSalesReturnValidator()
+        public enum enMode { ForAdd,ForUpdate}
+        public clsPurchaseInvoicesValidator(enMode mode)
         {
-            _Add();  
+            switch (mode)
+            {
+                case enMode.ForAdd: _Add(); break;
+                case enMode.ForUpdate: _Update(); break;
+                default:
+                    break;
+            }
         }
         private void _Add()
         {
             // User Validation
-            RuleFor(x => x.UserID)
+            RuleFor(x => x.CreatedBy)
                .Must(_ => GlobalUser.CurrentUser != null)
                .WithMessage("يجب تسجيل الدخول.")
                .GreaterThan(0)
@@ -47,9 +54,18 @@ namespace Acc_Trede_winForms_Buisness.Validation.Sales
                 .WithMessage("المبلغ المدفوع أكبر من صافي الفاتورة.");
 
             // invoice num validation 
-            RuleFor(x => x.ReturnNumber)
+            RuleFor(x => x.SupplierInvoiceNum)
                 .NotEmpty().WithMessage("رقم الفاتورة يجب ان يحمل قيمه.");
 
+        }
+        private void _Update()
+        {
+            RuleFor(x => x.SupplierInvoiceNum)
+                .NotEmpty().WithMessage("لا يمكن ان يكون رقم الفاتورة فارغ.");
+
+            RuleFor(x => x.SupplierID)
+                .Null().WithMessage("لا يمكن ان يكون المورد فارغ.")
+                .GreaterThan(0).WithMessage("خطاء في بيانات المورد.");
         }
     }
 }

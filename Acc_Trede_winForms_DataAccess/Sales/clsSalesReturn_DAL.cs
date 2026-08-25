@@ -63,11 +63,12 @@ namespace Acc_Trede_winForms_DataAccess.Sales
         {
             DataTable dt = new DataTable();
 
-            string query = @"SELECT SI.InvoiceID, SI.InvoiceNumber, SI.InvoiceDate, SI.UserID,
-                                    ISNULL(C.CustomerName, N'عميل نقدي') AS CustomerName, SI.TotalAmount, SI.Discount, SI.TaxAmount, 
-                                    (TotalAmount - Discount + TaxAmount) AS NetAmount,SI.CashAmount,SI.CardAmount, SI.RemainingAmount
-                             FROM SalesReturns SI
-                             LEFT JOIN Customers C ON SI.CustomerID = C.CustomerID
+            string query = @"SELECT r.ReturnID, r.ReturnNumber, r.InvoiceID, r.CustomerID,
+                             r.ReturnDate, r.TotalAmount, r.TaxAmount, r.Notes, r.UserID, r.RemainingAmount,
+                             r.CashAmount, r.CardAmount, isNull(c.CustomerName,N'عميل نقدي') as CustomerName,
+                             (TotalAmount + TaxAmount) AS NetAmount
+                             FROM     Customers AS c INNER JOIN
+                             SalesReturns AS r ON c.CustomerID = r.CustomerID
                              ORDER BY SI.InvoiceDate DESC";
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))

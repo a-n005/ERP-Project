@@ -1,4 +1,6 @@
 ﻿using Acc_Trade_Core;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Sales;
 using Acc_Trede_winForms_DataAccess.Sales;
 using Global;
 using System;
@@ -56,6 +58,10 @@ namespace Acc_Trede_winForms_Buisness.Sales
 
         private Result _Add()
         {
+            Result r = new clsSalesReturnValidator().Validate(this).ToResult();
+            if(r.IsFailure)
+                return r;
+
             Result<int> res = clsSalesReturn_DAL.InsertSalesReturn(this.InvoiceID, this.ReturnNumber, this.CustomerID, this.TotalAmount, this.TaxAmount, this.Notes, GlobalUser.CurrentUser.UserID, this.CashAmount, this.CardAmount, this.Cart);
             if (res.IsFailure)
                 return Result.Failure(res.Error);

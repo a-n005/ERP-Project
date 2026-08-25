@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Purchases;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Purchases;
 using Global;
 using System;
 using System.Data;
@@ -45,6 +47,9 @@ namespace Acc_Trede_winForms_Buisness.Purchases
         }
         Result _Add()
         {
+            Result r = new clsPurchaseInvoicesValidator(clsPurchaseInvoicesValidator.enMode.ForAdd).Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             Result<int> res = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(this.SupplierInvoiceNum, GlobalUser.CurrentUser.UserID, this.SupplierID, this.TotalAmount, this.TaxAmount, this.Discount, this.CashAmount, this.CardAmount, this.Cart);
             if (res.IsFailure)
                 return Result.Failure(res.Error);
@@ -52,7 +57,13 @@ namespace Acc_Trede_winForms_Buisness.Purchases
             this._Mode = _enMode.Update;
             return Result.Success();
         }
-        Result _Update() => clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(this.PurchaseID, this.SupplierID);
+        Result _Update()
+        {
+            Result r = new clsPurchaseInvoicesValidator(clsPurchaseInvoicesValidator.enMode.ForUpdate).Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
+            return clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(this.PurchaseID, this.SupplierID);
+        }
         public Result Save() => _Mode == _enMode.Add ? _Add() : _Update();
         public static Result<DataTable> GetAllInvoices() => clsPurchaseInvoices_DAL.GetAllPurchaseInvoices();
         public static Result<clsPurchaseInvoices_BLL> Find(int id)

@@ -1,14 +1,19 @@
-﻿using Acc_Trede_winForms_Buisness.Sales;
+﻿using Acc_Trede_winForms_Buisness.Purchases;
 using FluentValidation;
 using Global;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Acc_Trede_winForms_Buisness.Validation.Sales
+namespace Acc_Trede_winForms_Buisness.Validation.Purchases
 {
-    public class clsSalesReturnValidator: AbstractValidator<clsSalesReturn_BLL>
+    public class clsPurchaseReturnsValidator:AbstractValidator<clsPurchaseReturns_BLL>
     {
-        public clsSalesReturnValidator()
-        {
-            _Add();  
+        public clsPurchaseReturnsValidator()
+        { 
+                _Add(); 
         }
         private void _Add()
         {
