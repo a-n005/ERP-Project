@@ -1,12 +1,10 @@
-﻿using Acc_Trede_winForms_DataAccess.Sales;
+﻿using Acc_Trede_winForms_Buisness.Validation.Sales;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_DataAccess.Sales;
 using Acc_Trade_Core;
+using System.Data;
 using Global;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_Buisness.Sales
 {
@@ -55,41 +53,19 @@ namespace Acc_Trede_winForms_Buisness.Sales
             this.RemainingAmount = remaining;
         }
 
-        private Result _Add()
+        public Result Create()
         {
+            Result r = new clsSalesValidator().Validate(this).ToResult();
+            if (r.IsFailure)
+                return r;
+
             Result<int> res = clsSalesInvoices_DAL.InsertSalesInvoice(this.InvoiceNumber, this.CreatedBy, this.CustomerID,
                 this.TotalAmount, this.Discount, this.TaxAmount, this.CashAmount, this.CardAmount, this.SalesCart);
             if (res.IsFailure)
             {
-                return Result.Failure(res.Error);
+                return res;
             }
             this.InvoiceID = res.Value;
-            return Result.Success();
-        }
-        public Result Create()
-        {
-            this.CreatedBy = GlobalUser.CurrentUser?.UserID ?? -1;
-            Result validate = _Validate();
-            if (validate.IsFailure)
-                return validate;
-            return _Add();
-        }
-        private Result _Validate()
-        {
-            if (Discount < 0 || TaxAmount < 0 || NetAmount < 0)
-                return Result.Failure("قيم الخصم أو الضريبة أو الصافي غير صحيحة.");
-            if (CashAmount < 0 || CardAmount < 0)
-                return Result.Failure("لا يمكن أن تكون قيمة الدفع سالبة.");
-            if (SalesCart == null || SalesCart.Rows.Count == 0)
-                return Result.Failure("الفاتورة لا تحتوي على أصناف.");
-            if (CashAmount + CardAmount > NetAmount)
-                return Result.Failure("المبلغ المدفوع أكبر من صافي الفاتورة.");
-            if (GlobalUser.CurrentUser == null || CreatedBy == -1)
-                return Result.Failure("يجب تسجيل الدخول.");
-            if (TotalAmount <= 0)
-                return Result.Failure("إجمالي الفاتورة يجب أن يكون أكبر من صفر.");
-            if (Discount > TotalAmount)
-                return Result.Failure("الخصم لا يمكن أن يكون أكبر من إجمالي الفاتورة.");
             return Result.Success();
         }
         public static Result<DataTable> GetAllInvoices() => clsSalesInvoices_DAL.GetAllSalesInvoices();
@@ -100,7 +76,7 @@ namespace Acc_Trede_winForms_Buisness.Sales
             if (res.IsFailure)
                 return Result<clsSalesInvoices_BLL>.Failure(res.Error);
             if (res.Value == null && res.Value.Rows.Count == 0)
-                return Result<clsSalesInvoices_BLL>.Failure("لم يتم العثور على المنتج المطلوب.");
+                return Result<clsSalesInvoices_BLL>.Failure("لم يتم العثور على الفاتورة المطلوبة.");
 
             DataRow dr = res.Value.Rows[0];
             clsSalesInvoices_BLL invoice = MapFromDataRow(dr);

@@ -1,5 +1,5 @@
-﻿using Acc_Trede_winForms_Buisness.UserManagement;
-using Acc_Trade_Core;
+﻿using Acc_Trade_Core;
+using Acc_Trede_winForms_Buisness.UserManagement;
 using System;
 using System.Data;
 
@@ -42,7 +42,7 @@ namespace Global
 
         public static void LogOut()
         {
-            CurrentUser = null; 
+            CurrentUser = null;
         }
 
         public static bool IsLoggedIn => CurrentUser != null;
@@ -69,7 +69,7 @@ namespace Global
                 return Result.Failure("خطأ: حساب المستخدم معطل، يرجى التواصل مع الإدارة!");
             }
 
-            Initialize(user); 
+            Initialize(user);
             return Result.Success();
         }
     }

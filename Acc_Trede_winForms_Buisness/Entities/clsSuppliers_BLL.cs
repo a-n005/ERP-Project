@@ -1,14 +1,8 @@
-﻿using Acc_Trede_winForms_DataAccess.Entities;
-using Acc_Trade_Core;
+﻿using Acc_Trade_Core;
+using Acc_Trede_winForms_DataAccess.Entities;
 using Global;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Acc_Trede_winForms.Entities
 {
@@ -55,11 +49,11 @@ namespace Acc_Trede_winForms.Entities
             this._Mode = _enMode.Update;
             return Result.Success();
         }
-        private Result _UpdateSupplier()=>clsSuppliers_DAL.UpdateSupplier(this.SupplierID,this.SupplierName,this.CompanyName,this.Phone,this.TaxNumber,GlobalUser.CurrentUser.UserID);
+        private Result _UpdateSupplier() => clsSuppliers_DAL.UpdateSupplier(this.SupplierID, this.SupplierName, this.CompanyName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
         public Result Save()
         {
             switch (_Mode)
-            {   
+            {
                 case _enMode.Add:
                     return _AddNewSupplier();
                 case _enMode.Update:
@@ -67,19 +61,19 @@ namespace Acc_Trede_winForms.Entities
             }
             return Result.Failure("خطأ: لم يتم تحديد وضع الحفظ المناسب!");
         }
-        public Result DeleteSupplier(int SupplierID)=>clsSuppliers_DAL.DeleteSupplierSoft(SupplierID);
-        public static Result<DataTable> GetAllSupplier()=> clsSuppliers_DAL.GetAllSuppliers();
+        public Result DeleteSupplier(int SupplierID) => clsSuppliers_DAL.DeleteSupplierSoft(SupplierID);
+        public static Result<DataTable> GetAllSupplier() => clsSuppliers_DAL.GetAllSuppliers();
         public static Result<clsSuppliers_BLL> FindSupplierByID(int SupplierID)
         {
-            Result<DataTable> res=clsSuppliers_DAL.GetSupplierByID(SupplierID);
-            if(res.IsFailure)
+            Result<DataTable> res = clsSuppliers_DAL.GetSupplierByID(SupplierID);
+            if (res.IsFailure)
                 return Result<clsSuppliers_BLL>.Failure(res.Error);
-            if(res.Value==null && res.Value.Rows.Count==0)
+            if (res.Value == null && res.Value.Rows.Count == 0)
                 return Result<clsSuppliers_BLL>.Failure("لم يتم العثور على المورد المطلوب.");
             DataRow dr = res.Value.Rows[0];
             clsSuppliers_BLL supplier = MapFromDataRow(dr);
             return Result<clsSuppliers_BLL>.Success(supplier);
-                
+
         }
         private static clsSuppliers_BLL MapFromDataRow(DataRow dr)
         {

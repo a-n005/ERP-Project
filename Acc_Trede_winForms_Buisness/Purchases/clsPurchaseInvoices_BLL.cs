@@ -1,12 +1,8 @@
-﻿using Acc_Trede_winForms_DataAccess.Purchases;
-using Acc_Trade_Core;
+﻿using Acc_Trade_Core;
+using Acc_Trede_winForms_DataAccess.Purchases;
 using Global;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_Buisness.Purchases
 {
@@ -58,7 +54,7 @@ namespace Acc_Trede_winForms_Buisness.Purchases
         }
         Result _Update() => clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(this.PurchaseID, this.SupplierID);
         public Result Save() => _Mode == _enMode.Add ? _Add() : _Update();
-        public static Result<DataTable> GetAllInvoices()=>clsPurchaseInvoices_DAL.GetAllPurchaseInvoices();
+        public static Result<DataTable> GetAllInvoices() => clsPurchaseInvoices_DAL.GetAllPurchaseInvoices();
         public static Result<clsPurchaseInvoices_BLL> Find(int id)
         {
             Result<DataTable> res = clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(id);

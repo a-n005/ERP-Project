@@ -2,12 +2,7 @@
 using Acc_Trede_winForms_DataAccess.Inventory;
 using Global;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
 
 namespace Acc_Trede_winForms_Buisness.Inventory
 {

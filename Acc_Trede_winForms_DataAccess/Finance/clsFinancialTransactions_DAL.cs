@@ -1,12 +1,8 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Global;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_DataAccess.Finance
 {
@@ -15,7 +11,7 @@ namespace Acc_Trede_winForms_DataAccess.Finance
         /// <summary>
         /// إضافة سند قبض جديد في النظام واسترجاع رسائل الخطأ إن وجدت عبر متغير out
         /// </summary>
-        public static Result<int >InsertReceiptVoucher(
+        public static Result<int> InsertReceiptVoucher(
             string voucherNumber,
             decimal amount,
             string paymentMethod,
@@ -62,7 +58,7 @@ namespace Acc_Trede_winForms_DataAccess.Finance
         /// <summary>
         /// إضافة سند صرف جديد في النظام واسترجاع رسائل الخطأ إن وجدت عبر متغير out
         /// </summary>
-        public static Result<int >InsertPaymentVoucher(
+        public static Result<int> InsertPaymentVoucher(
             string voucherNumber,
             decimal amount,
             string paymentMethod,

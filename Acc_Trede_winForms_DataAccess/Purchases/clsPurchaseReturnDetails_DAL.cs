@@ -1,12 +1,8 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Global;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_DataAccess.Purchases
 {
@@ -14,7 +10,7 @@ namespace Acc_Trede_winForms_DataAccess.Purchases
     {
         public static SqlParameter InsertCart(DataTable dt)
         {
-            SqlParameter tvpParameter=new SqlParameter("@Cart",SqlDbType.Structured);
+            SqlParameter tvpParameter = new SqlParameter("@Cart", SqlDbType.Structured);
             tvpParameter.TypeName = "dbo.PurchaseReturnCartType";
             tvpParameter.Value = dt;
             return tvpParameter;
