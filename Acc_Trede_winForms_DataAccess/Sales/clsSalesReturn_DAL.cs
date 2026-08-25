@@ -59,6 +59,86 @@ namespace Acc_Trede_winForms_DataAccess.Sales
             return (newID > 0) ? Result<int>.Success(newID) : Result<int>.Failure("فشل إضافة فاتورة: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
 
-        // add get records 
+        public static Result<DataTable> GetAllSalesInvoices()
+        {
+            DataTable dt = new DataTable();
+
+            string query = @"SELECT SI.InvoiceID, SI.InvoiceNumber, SI.InvoiceDate, SI.UserID,
+                                    ISNULL(C.CustomerName, N'عميل نقدي') AS CustomerName, SI.TotalAmount, SI.Discount, SI.TaxAmount, 
+                                    (TotalAmount - Discount + TaxAmount) AS NetAmount,SI.CashAmount,SI.CardAmount, SI.RemainingAmount
+                             FROM SalesReturns SI
+                             LEFT JOIN Customers C ON SI.CustomerID = C.CustomerID
+                             ORDER BY SI.InvoiceDate DESC";
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows) dt.Load(reader);
+                        }
+                        return Result<DataTable>.Success(dt);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
+                    }
+                }
+            }
+        }
+        public static Result<DataTable> FindByOriginalID(int id)
+        {
+            DataTable dt = new DataTable();
+            string query = "select * from SalesReturns where InvoiceID=@ID";
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows) dt.Load(reader);
+                        }
+                        return Result<DataTable>.Success(dt);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Result<DataTable>.Failure(ex.Message);
+                    }
+                }
+            }
+        }
+        public static Result<DataTable> FindByReturnID(int id)
+        {
+            DataTable dt = new DataTable();
+            string query = "select * from SalesReturns where ReturnID=@ID";
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+                    try
+                    {
+                        connection.Open();
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows) dt.Load(reader);
+                        }
+                        return Result<DataTable>.Success(dt);
+                    }
+                    catch (Exception ex)
+                    {
+                        return Result<DataTable>.Failure(ex.Message);
+                    }
+                }
+            }
+        }
     }
 }

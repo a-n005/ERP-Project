@@ -63,5 +63,52 @@ namespace Acc_Trede_winForms_Buisness.Sales
             return Result.Success();
         }
         public Result Save() => _Add();
+
+        public static Result<DataTable> GetAllInvoices() => clsSalesReturn_DAL.GetAllSalesInvoices();
+
+        public static Result<clsSalesReturn_BLL> FindByReturnID(int returnId)
+        {
+            Result<DataTable> res = clsSalesReturn_DAL.FindByReturnID(returnId);
+            if (res.IsFailure)
+                return Result<clsSalesReturn_BLL>.Failure(res.Error);
+            if (res.Value == null && res.Value.Rows.Count == 0)
+                return Result<clsSalesReturn_BLL>.Failure("لم يتم العثور على الفاتورة المطلوبة.");
+
+            DataRow dr = res.Value.Rows[0];
+            clsSalesReturn_BLL invoice = MapFromDataRow(dr);
+
+            return Result<clsSalesReturn_BLL>.Success(invoice);
+        }
+        public static Result<clsSalesReturn_BLL> FindByOriginalID(int originalID)
+        {
+            Result<DataTable> res = clsSalesReturn_DAL.FindByOriginalID(originalID);
+            if (res.IsFailure)
+                return Result<clsSalesReturn_BLL>.Failure(res.Error);
+            if (res.Value == null && res.Value.Rows.Count == 0)
+                return Result<clsSalesReturn_BLL>.Failure("لم يتم العثور على الفاتورة المطلوبة.");
+
+            DataRow dr = res.Value.Rows[0];
+            clsSalesReturn_BLL invoice = MapFromDataRow(dr);
+
+            return Result<clsSalesReturn_BLL>.Success(invoice);
+        }
+        private static clsSalesReturn_BLL MapFromDataRow(DataRow dr)
+        {
+            return new clsSalesReturn_BLL(
+                returnID: Convert.ToInt32(dr["ReturnID"]),
+                returnNumber: dr["ReturnNumber"].ToString(),
+                invoiceID: Convert.ToInt32(dr["InvoiceID"]),
+                customerID: dr["CustomerID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["CustomerID"]),
+                returnDate: Convert.ToDateTime(dr["ReturnDate"]),
+                totalAmount: Convert.ToDecimal(dr["TotalAmount"]),
+                taxAmount: Convert.ToDecimal(dr["TaxAmount"]),
+                notes: dr["Notes"].ToString()??"",
+                userID: Convert.ToInt32(dr["UserID"]),
+                remainingAmount: Convert.ToDecimal(dr["RemainingAmount"]),
+                cashAmount: Convert.ToDecimal(dr["CashAmount"]),
+                cardAmount: Convert.ToDecimal(dr["CardAmount"])
+                );
+
+        }
     }
 }
