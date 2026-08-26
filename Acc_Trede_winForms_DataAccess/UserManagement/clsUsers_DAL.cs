@@ -42,7 +42,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
             }
             return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
         }
-        public static Result<int> AddNewUser(string username, string passwordHash, int permissions, string fullName, string phone = null)
+        public static Result<int> AddNewUser(string username, string passwordHash, int permissions, string fullName, string phone )
         {
             int newUserID = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -124,7 +124,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
                 }
             }
         }
-        public static Result UpdateUser(int userID, string username, int permissions, string fullName, bool isActive, int updatedBy, string phone = null)
+        public static Result UpdateUser(int userID, string username, int permissions, string fullName, bool isActive, int updatedBy, string phone)
         {
 
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))

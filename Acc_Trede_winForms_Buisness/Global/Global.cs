@@ -21,6 +21,8 @@ namespace Global
 
     public static class GlobalUser
     {
+        // make method to set generate num for invoices
+
         public static clsUser_BLL CurrentUser { get; private set; }
 
         public static void Initialize(clsUser_BLL user)

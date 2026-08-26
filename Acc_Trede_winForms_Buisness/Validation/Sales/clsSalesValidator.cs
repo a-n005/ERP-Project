@@ -4,7 +4,7 @@ using Global;
 
 namespace Acc_Trede_winForms_Buisness.Validation.Sales
 {
-    public class clsSalesValidator : AbstractValidator<clsSalesInvoices_BLL>
+    internal sealed class clsSalesValidator : AbstractValidator<clsSalesInvoices_BLL>
     {
         public enum enValidationMode
         {

@@ -4,7 +4,7 @@ using Global;
 
 namespace Acc_Trede_winForms_Buisness.Validation.Sales
 {
-    public class clsSalesReturnValidator: AbstractValidator<clsSalesReturn_BLL>
+    internal sealed class clsSalesReturnValidator: AbstractValidator<clsSalesReturn_BLL>
     {
         public clsSalesReturnValidator()
         {

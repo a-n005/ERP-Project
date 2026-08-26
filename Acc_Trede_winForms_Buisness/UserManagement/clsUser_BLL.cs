@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.UserManagement;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.UserManagement;
 using Global;
 using System;
 using System.Data;
@@ -17,7 +19,10 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
         public string FullName { get; set; }
         public string Phone { get; set; }
         public bool IsActive { get; set; }
-        // Add later createdBy, updatedBy, createdAt and updatedAt
+        public int? UpdatedBy { get; set; }
+        public int CreatedBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public clsUser_BLL()
         {
             this.UserID = -1;
@@ -30,7 +35,8 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
 
             this._mode = _enMode.Add;
         }
-        private clsUser_BLL(int userID, string userName, string passWordHash, enPermissions permissions, string fullName, string phone, bool isActive)
+        private clsUser_BLL(int userID, string userName, string passWordHash, enPermissions permissions,
+            string fullName, string phone, bool isActive, int? updatedBy, int createdBy, DateTime? updatedAt, DateTime createdAt)
         {
             this.UserID = userID;
             this.UserName = userName;
@@ -40,10 +46,17 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
             this.Phone = phone;
             this.IsActive = isActive;
             _mode = _enMode.Update;
+            this.UpdatedBy = updatedBy;
+            this.CreatedBy = createdBy;
+            this.UpdatedAt = updatedAt;
+            this.CreatedAt = createdAt;
         }
 
         private Result _AddNewUser()
         {
+            Result r = new clsUserValiator(clsUserValiator.enMode.ForAdd).Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             Result<int> res = clsUsers_DAL.AddNewUser(this.UserName, this.PassWordHash, (int)this.Permissions, this.FullName, phone: this.Phone);
             if (res.IsFailure)
                 return Result.Failure(res.Error);
@@ -51,7 +64,13 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
             this._mode = _enMode.Update;
             return Result.Success();
         }
-        private Result _UpdateUser() => clsUsers_DAL.UpdateUser(this.UserID, this.UserName, (int)this.Permissions, this.FullName, this.IsActive, GlobalUser.CurrentUser?.UserID ?? -1, phone: this.Phone);
+        private Result _UpdateUser()
+        {
+            Result r = new clsUserValiator(clsUserValiator.enMode.ForUpdate).Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
+            return clsUsers_DAL.UpdateUser(this.UserID, this.UserName, (int)this.Permissions, this.FullName, this.IsActive, GlobalUser.CurrentUser.UserID, this.Phone);
+        }
 
         public Result Save()
         {
@@ -95,7 +114,7 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
 
             return (this.Permissions & permissionToCheck) == permissionToCheck;
         }
-        public static Result<DataTable> LoginUser(string username, string password) => clsUsers_DAL.LoginUser(username, password);
+        public static Result<DataTable> LoginUser(string username, string password)=> clsUsers_DAL.LoginUser(username, password);
         public static clsUser_BLL MapFromDataRow(DataRow dr)
         {
             return new clsUser_BLL(
@@ -105,7 +124,11 @@ namespace Acc_Trede_winForms_Buisness.UserManagement
                  permissions: (enPermissions)Convert.ToInt32(dr["Permissions"]),
                  fullName: dr["FullName"].ToString(),
                  phone: dr["Phone"] == DBNull.Value ? null : dr["Phone"].ToString(),
-                 isActive: Convert.ToBoolean(dr["IsActive"])
+                 isActive: Convert.ToBoolean(dr["IsActive"]),
+                 updatedBy: dr["UpdatedBy"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["UpdatedBy"]),
+                 createdBy: Convert.ToInt32(dr["CreatedBy"]),
+                 updatedAt: dr["LastUpdate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["LastUpdate"]),
+                 createdAt: Convert.ToDateTime(dr["CreatedAt"])
              );
         }
     }

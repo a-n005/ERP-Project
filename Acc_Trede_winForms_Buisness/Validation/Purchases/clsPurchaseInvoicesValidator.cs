@@ -4,9 +4,9 @@ using Global;
 
 namespace Acc_Trede_winForms_Buisness.Validation.Purchases
 {
-    public class clsPurchaseInvoicesValidator : AbstractValidator<clsPurchaseInvoices_BLL>
+    internal sealed class clsPurchaseInvoicesValidator : AbstractValidator<clsPurchaseInvoices_BLL>
     {
-        public enum enMode { ForAdd,ForUpdate}
+        public enum enMode { ForAdd, ForUpdate }
         public clsPurchaseInvoicesValidator(enMode mode)
         {
             switch (mode)
@@ -29,7 +29,7 @@ namespace Acc_Trede_winForms_Buisness.Validation.Purchases
             // Cart validation
             RuleFor(x => x.Cart)
                 .NotNull()
-                .Must(cart => cart != null && cart.Rows.Count > 0)
+                .Must(cart => cart.Rows.Count > 0)
                 .WithMessage("الفاتورة لا تحتوي على أصناف.");
 
             // Amount validtion

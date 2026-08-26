@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Acc_Trede_winForms_Buisness.Validation.Purchases
 {
-    public class clsPurchaseReturnsValidator:AbstractValidator<clsPurchaseReturns_BLL>
+    internal sealed class clsPurchaseReturnsValidator:AbstractValidator<clsPurchaseReturns_BLL>
     {
         public clsPurchaseReturnsValidator()
         { 
