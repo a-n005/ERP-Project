@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Inventory;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Inventory;
 using Global;
 using System;
 using System.Data;
@@ -50,6 +52,9 @@ namespace Acc_Trede_winForms_Buisness.Inventory
         }
         private Result _AddNewProduct()
         {
+            Result r= new clsProductsValidator().Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             Result<int> res = clsProducts_DAL.InsertProduct(this.Barcode, this.ProductName, this.CostPrice, this.SalePrice, this.Quantity, this.MinQuantityAlert, GlobalUser.CurrentUser.UserID);
             if (res.IsFailure)
                 return Result.Failure(res.Error);
@@ -57,8 +62,16 @@ namespace Acc_Trede_winForms_Buisness.Inventory
             this._Mode = _enMode.Update;
             return Result.Success();
         }
-        private Result _UpdateProduct() => clsProducts_DAL.UpdateProduct(this.ProductID, this.Barcode, this.ProductName, this.CostPrice, this.SalePrice, this.Quantity, this.MinQuantityAlert, GlobalUser.CurrentUser.UserID);
+        private Result _UpdateProduct()
+        {
+            Result r = new clsProductsValidator().Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
+            return clsProducts_DAL.UpdateProduct(this.ProductID, this.Barcode, this.ProductName,
+                 this.CostPrice, this.SalePrice, this.Quantity, this.MinQuantityAlert, GlobalUser.CurrentUser.UserID);
+        }
         public Result Save() => _Mode == _enMode.Add ? _AddNewProduct() : _UpdateProduct();
+        // ask about del want del now or when the quantity finsh.
         public Result Delete() => clsProducts_DAL.DeleteProductSoft(this.ProductID, GlobalUser.CurrentUser.UserID);
         public static Result<DataTable> GetAllProducts() => clsProducts_DAL.GetAllProducts();
         public static Result<DataTable> GetLowQuantity() => clsProducts_DAL.GetLowStockProducts();

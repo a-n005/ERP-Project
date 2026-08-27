@@ -69,10 +69,12 @@
     <Compile Include="Global\Global.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validation\clsValidationExtensions.cs" />
+    <Compile Include="Validation\Inventory\clsProductsValidator.cs" />
     <Compile Include="Validation\Purchases\clsPurchaseInvoicesValidator.cs" />
     <Compile Include="Validation\Purchases\clsPurchaseReturnsValidator.cs" />
     <Compile Include="Validation\Sales\clsSalesReturnValidator.cs" />
     <Compile Include="Validation\Sales\clsSalesValidator.cs" />
+    <Compile Include="Validation\UserManagement\clsUserValiator.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
