@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Finance;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Finance;
 using Global;
 using System;
 using System.Data;
@@ -45,6 +47,9 @@ namespace Acc_Trede_winForms_Buisness.Finance
 
         private Result _Add()
         {
+            Result r=new clsReceiptValidator().Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             Result<int> res = clsFinancialTransactions_DAL.InsertReceiptVoucher(this.VoucherNum, this.Amount, this.PaymentMethod, this.CustomerID, this.SupplierID, this.Notes, GlobalUser.CurrentUser.UserID, this.SaleID, this.PurchaseReturnID);
             if (res.IsFailure)
                 return Result.Failure(res.Error);
@@ -53,10 +58,7 @@ namespace Acc_Trede_winForms_Buisness.Finance
             return Result.Success();
         }
         // Result _Update()=>clsFinancialTransactions_DAL.
-        public Result Save()
-        {
-            return _Add();
-        }
+        public Result Save() => _Add();
         public static Result<DataTable> GetAll() => clsFinancialTransactions_DAL.GetAllTransactionsPayment();
         public static Result<clsReceiptVouchers_BLL> Find(int id)
         {

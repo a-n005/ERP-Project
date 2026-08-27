@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Entities;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Entitis;
 using Global;
 using System;
 using System.Data;
@@ -47,9 +49,12 @@ namespace Acc_Trede_winForms_Buisness.Entities
             this._Mode = _enMode.Update;
             return Result.Success();
         }
-        private Result _Update() => clsCustomers_DAL.UpdateCustomer(this.CustomerID, this.CustomerName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
+        private Result _Update()=>clsCustomers_DAL.UpdateCustomer(this.CustomerID, this.CustomerName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
         public Result Save()
         {
+            Result r=new clsCustomersValidator().Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             switch (_Mode)
             {
                 case _enMode.Add:

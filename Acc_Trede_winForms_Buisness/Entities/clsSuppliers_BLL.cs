@@ -1,5 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Entities;
+using Acc_Trede_winForms_Buisness.Validation;
+using Acc_Trede_winForms_Buisness.Validation.Entitis;
 using Global;
 using System;
 using System.Data;
@@ -52,6 +54,9 @@ namespace Acc_Trede_winForms.Entities
         private Result _UpdateSupplier() => clsSuppliers_DAL.UpdateSupplier(this.SupplierID, this.SupplierName, this.CompanyName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
         public Result Save()
         {
+            Result r=new clsSuppliersValidator().Validate(this).ToResult();
+            if (r.IsFailure) return r;
+
             switch (_Mode)
             {
                 case _enMode.Add:
