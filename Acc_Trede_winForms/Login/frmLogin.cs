@@ -1,0 +1,201 @@
+﻿using Acc_Trade_Core;
+using Acc_Trede_winForms.Models.CButton;
+using Acc_Trede_winForms.Properties;
+using Acc_Trede_winForms_Buisness.Global;
+using Acc_Trede_winForms_Buisness.Validation;
+using Global;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Acc_Trede_winForms.Login
+{
+    public partial class frmLogin : Form
+    {
+        public frmLogin()
+        {
+            InitializeComponent();
+        }
+
+        private void Login_Load(object sender, EventArgs e)
+        {
+            p1InLoad();
+            pListInLoad();
+
+            ShowLoginControl();
+
+            
+        }
+        #region Work Screen Panel
+        private void ShowLoginControl()
+        {
+            pScreen.Size = new Size(800, 427);
+            // Clear panel & initialize control
+            pScreen.Controls.Clear();
+            var _ucLogin = new ucLogin();
+
+            // Stretch user control to fill the container panel
+            _ucLogin.Dock = DockStyle.Fill;
+
+            // Subscribe to the successful login event
+            _ucLogin.OnLoginSuccess += UcLogin_OnLoginSuccess;
+
+            pScreen.Controls.Add(_ucLogin);
+
+            this.ActiveControl = _ucLogin;
+            _ucLogin.Focus();
+        }
+        private void UcLogin_OnLoginSuccess(object sender, EventArgs e)
+        {
+            btnMaximized.Visible = true;
+            btnMinimized.Visible = true;
+            btnLogout.Visible = true;
+            // 1. Remove login control from panel
+            pScreen.Controls.Clear();
+
+            // 2. Maximize the main form
+            btnMaximized.PerformClick();
+
+            // 3. Resize/Adjust container panel to fit full screen dimensions
+            pScreen.Dock = DockStyle.Fill; // Automatically expands to cover screen space
+
+            // 4. Load your main dashboard/screen control here
+            // ucDashboard dashboard = new ucDashboard { Dock = DockStyle.Fill };
+            // panelContainer.Controls.Add(dashboard);
+        }
+        #endregion
+        #region Top Panel
+        private void p1InLoad()
+        {
+            lblTime.Text = DateTime.Now.ToString("yyyy-MM-dd  hh:mm:ss tt");
+            Timer clockTimer = new Timer();
+            clockTimer.Interval = 1000; // Update every 1 second (1000 ms)
+            clockTimer.Tick += (s, ev) =>
+            {
+                lblTime.Text = DateTime.Now.ToString("yyyy-MM-dd  hh:mm:ss tt");
+            };
+            clockTimer.Start();
+
+            panel1.Paint += (s, ev) => p_Paint(panel1, ev, null, 2, false, true);
+        }
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            btnMinimized.Visible = false;
+            btnMaximized.Visible = false;
+            btnLogout.Visible = false;
+            GlobalUser.LogOut();
+            this.WindowState = FormWindowState.Normal;
+            pScreen.Dock = DockStyle.None;
+            ShowLoginControl();
+        }
+        private void panel1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(this.Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+        // Native Windows API calls for window dragging
+        [DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        private const int WM_NCLBUTTONDOWN = 0xA1;
+        private const int HT_CAPTION = 0x2;
+        private void btnMaximized_Click(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                this.WindowState = FormWindowState.Maximized;
+                btnMaximized.Icon = Resources.Restore_Down;
+            }
+            else
+            {
+                this.WindowState = FormWindowState.Normal;
+                btnMaximized.Icon = Resources.Maximize_Button;
+            }
+        }
+
+        private void btnMinimized_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+        private void cBtn1_Click(object sender, EventArgs e)
+        {
+            btnLogout.PerformClick();
+            Environment.Exit(0);
+            Application.Exit();
+        }
+
+        #endregion
+        #region List Panel
+        private void pListInLoad()
+        {
+            pList.Paint += (s, ev) => p_Paint(pList, ev, null, 2, false, false, true);
+        }
+        private void btnHide_Click(object sender, EventArgs e)
+        {
+            if (pList.Size.Width == 193)
+            {
+                pList.Size = new Size(49, this.Size.Height);
+
+                foreach (Control item in pList.Controls)
+                    if (item is CBtn btn)
+                    {
+                        if (btn.Tag == null && !string.IsNullOrEmpty(btn.Text))
+                            btn.Tag = btn.Text;
+
+                        btn.Text = string.Empty;
+                    }
+
+                btnHide.Icon = Resources.arrow_to_left;
+            }
+            else
+            {
+                pList.Size = new Size(193, this.Size.Height);
+                btnHide.Icon = Resources.arrow_to_right;
+
+                foreach (Control item in pList.Controls)
+                    if (item is CBtn btn && btn.Tag != null)
+                        btn.Text = btn.Tag.ToString();
+            }
+        }
+        #endregion
+        private void p_Paint(Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2, bool t = false, bool b = false, bool l = false, bool r = false)
+        {
+            Color lineColor = color ?? Color.FromArgb(108, 92, 231);
+
+            // Enable smooth rendering
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            using (Pen pen = new Pen(lineColor, lineThickness))
+            {
+                int width = panel.ClientSize.Width;
+                int height = panel.ClientSize.Height;
+                if (t)
+                    // Line across the top edge
+                    e.Graphics.DrawLine(pen, 0, 0, width, 0);
+                if (r)
+                    // Line down the right edge
+                    e.Graphics.DrawLine(pen, width - 1, 0, width - 1, height);
+                if (b)
+                    // Line across the bottom edge
+                    e.Graphics.DrawLine(pen, 0, height - 1, width, height - 1);
+                if (l)
+                    // Line down the left edge
+                    e.Graphics.DrawLine(pen, 0, 0, 0, height);
+
+            }
+        }
+    }
+}

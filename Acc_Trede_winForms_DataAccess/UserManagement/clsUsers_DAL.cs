@@ -11,7 +11,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
         /// <summary>
         /// ميثود للتحقق من تسجيل دخول المستخدم وجلب بياناته وصلاحياته
         /// </summary>
-        public static Result<DataTable> LoginUser(string username, string passwordHash)
+        public static Result<DataTable> LoginUser(string username, string password)
         {
             DataTable dt = new DataTable();
 
@@ -24,7 +24,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Username", username);
-                    cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                    cmd.Parameters.AddWithValue("@PasswordHash", password);
 
                     try
                     {
@@ -42,7 +42,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
             }
             return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
         }
-        public static Result<int> AddNewUser(string username, string passwordHash, int permissions, string fullName, string phone )
+        public static Result<int> AddNewUser(string username, string password, int permissions, string fullName, string phone )
         {
             int newUserID = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -52,7 +52,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     cmd.Parameters.AddWithValue("@Username", username);
-                    cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                    cmd.Parameters.AddWithValue("@PasswordHash", password);
                     cmd.Parameters.AddWithValue("@Permissions", permissions);
                     cmd.Parameters.AddWithValue("@FullName", fullName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
@@ -157,7 +157,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
         /// <summary>
         /// تحديث كلمة المرور فقط (منفصلة لأواعي الأمان)
         /// </summary>
-        public static Result UpdatePassword(int userId, string newPasswordHash)
+        public static Result UpdatePassword(int userId, string newPassword)
         {
             string query = "UPDATE Users SET PasswordHash = @PasswordHash WHERE UserID = @UserID";
 
@@ -166,7 +166,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@UserID", userId);
-                    cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
+                    cmd.Parameters.AddWithValue("@PasswordHash", newPassword);
 
                     try
                     {

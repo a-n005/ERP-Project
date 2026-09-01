@@ -1,4 +1,5 @@
 ﻿using Acc_Trade_Core;
+using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.UserManagement;
 using System;
 using System.Data;
@@ -49,9 +50,9 @@ namespace Global
 
         public static bool IsLoggedIn => CurrentUser != null;
 
-        public static Result Login(string username, string passwordHash)
+        public static Result Login(string username, string password,bool rememberMe)
         {
-            Result<DataTable> res = clsUser_BLL.LoginUser(username, passwordHash);
+            Result<DataTable> res = clsUser_BLL.LoginUser(username, password);
             if (res.IsFailure)
             {
                 return Result.Failure(res.Error);
@@ -70,8 +71,9 @@ namespace Global
             {
                 return Result.Failure("خطأ: حساب المستخدم معطل، يرجى التواصل مع الإدارة!");
             }
-
             Initialize(user);
+
+            HelperRegistre.Save(username, password, rememberMe);
             return Result.Success();
         }
     }

@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,6 +55,8 @@
   <ItemGroup>
     <Compile Include="Entities\clsCustomers_BLL.cs" />
     <Compile Include="Finance\clsPaymentVouchers_BLL.cs" />
+    <Compile Include="Global\CryptoHelper.cs" />
+    <Compile Include="Global\HelperRegistre.cs" />
     <Compile Include="Inventory\clsProducts_BLL.cs" />
     <Compile Include="Purchases\clsPurchaseInvoiceDetails_BLL.cs" />
     <Compile Include="Purchases\clsPurchaseInvoices_BLL.cs" />
@@ -69,6 +72,10 @@
     <Compile Include="Global\Global.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validation\clsValidationExtensions.cs" />
+    <Compile Include="Validation\Entitis\clsCustomersValidator.cs" />
+    <Compile Include="Validation\Entitis\clsSuppliersValidator.cs" />
+    <Compile Include="Validation\Finance\clsPaymentValidator.cs" />
+    <Compile Include="Validation\Finance\clsReceiptValidator.cs" />
     <Compile Include="Validation\Inventory\clsProductsValidator.cs" />
     <Compile Include="Validation\Purchases\clsPurchaseInvoicesValidator.cs" />
     <Compile Include="Validation\Purchases\clsPurchaseReturnsValidator.cs" />

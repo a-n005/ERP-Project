@@ -52,22 +52,64 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Login\frmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Login\frmLogin.Designer.cs">
+      <DependentUpon>frmLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Login\ucLogin.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Login\ucLogin.Designer.cs">
+      <DependentUpon>ucLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CButton\CBtn.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Models\CCB.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Models\CMessageBox\CMsgB.cs" />
+    <Compile Include="Models\CMessageBox\CMsgBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Models\CRB.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Models\CTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Models\CTextBox.Designer.cs">
+      <DependentUpon>CTextBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Extenstions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Login\frmLogin.resx">
+      <DependentUpon>frmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Login\ucLogin.resx">
+      <DependentUpon>ucLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Models\CTextBox.resx">
+      <DependentUpon>CTextBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <None Include=".editorconfig" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -81,10 +123,29 @@
     <Folder Include="jn\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Acc_Trade_Core\Acc_Trade_Core.csproj">
+      <Project>{dafa0230-874c-44cc-b1c3-61a8d52c18f9}</Project>
+      <Name>Acc_Trade_Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Acc_Trede_winForms_Buisness\Acc_Trede_winForms_Buisness.csproj">
       <Project>{b2ebead5-2717-4035-8c5c-9d618c2372ed}</Project>
       <Name>Acc_Trede_winForms_Buisness</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Maximize Button.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Minimized.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Restore Down.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\arrow_to_left.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\arrow_to_right.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
