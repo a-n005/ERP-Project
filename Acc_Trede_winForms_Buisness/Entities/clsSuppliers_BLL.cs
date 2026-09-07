@@ -2,16 +2,26 @@
 using Acc_Trede_winForms_DataAccess.Entities;
 using Acc_Trede_winForms_Buisness.Validation;
 using Acc_Trede_winForms_Buisness.Validation.Entitis;
-using Global;
 using System;
 using System.Data;
+using System.Collections.Generic;
+using Acc_Trede_winForms_DataAccess.Global;
+using System.Data.SqlClient;
+using Acc_Trede_winForms_Buisness.Global;
 
 namespace Acc_Trede_winForms.Entities
 {
     public class clsSuppliers_BLL
     {
+        #region Enums
         private enum _enMode { Add, Update };
+        #endregion
+
+        #region Fields
         private _enMode _Mode = _enMode.Add;
+        #endregion
+
+        #region Properties
         public int SupplierID { get; set; }
         public string SupplierName { get; set; }
         public string CompanyName { get; set; }
@@ -23,6 +33,9 @@ namespace Acc_Trede_winForms.Entities
         public int CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime? LastUpdated { get; set; }
+        #endregion
+
+        #region Constructors
         public clsSuppliers_BLL()
         {
             SupplierID = -1;
@@ -42,6 +55,9 @@ namespace Acc_Trede_winForms.Entities
             this.LastUpdated = lastUpdated;
             _Mode = _enMode.Update;
         }
+        #endregion
+
+        #region Private Method
         private Result _AddNewSupplier()
         {
             Result<int> res = clsSuppliers_DAL.InsertSupplier(this.SupplierName, this.CompanyName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
@@ -52,9 +68,12 @@ namespace Acc_Trede_winForms.Entities
             return Result.Success();
         }
         private Result _UpdateSupplier() => clsSuppliers_DAL.UpdateSupplier(this.SupplierID, this.SupplierName, this.CompanyName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
+        #endregion
+
+        #region Public Method
         public Result Save()
         {
-            Result r=new clsSuppliersValidator().Validate(this).ToResult();
+            Result r = new clsSuppliersValidator().Validate(this).ToResult();
             if (r.IsFailure) return r;
 
             switch (_Mode)
@@ -67,34 +86,39 @@ namespace Acc_Trede_winForms.Entities
             return Result.Failure("خطأ: لم يتم تحديد وضع الحفظ المناسب!");
         }
         public Result DeleteSupplier(int SupplierID) => clsSuppliers_DAL.DeleteSupplierSoft(SupplierID);
-        public static Result<DataTable> GetAllSupplier() => clsSuppliers_DAL.GetAllSuppliers();
-        public static Result<clsSuppliers_BLL> FindSupplierByID(int SupplierID)
-        {
-            Result<DataTable> res = clsSuppliers_DAL.GetSupplierByID(SupplierID);
-            if (res.IsFailure)
-                return Result<clsSuppliers_BLL>.Failure(res.Error);
-            if (res.Value == null && res.Value.Rows.Count == 0)
-                return Result<clsSuppliers_BLL>.Failure("لم يتم العثور على المورد المطلوب.");
-            DataRow dr = res.Value.Rows[0];
-            clsSuppliers_BLL supplier = MapFromDataRow(dr);
-            return Result<clsSuppliers_BLL>.Success(supplier);
+        #endregion
 
-        }
-        private static clsSuppliers_BLL MapFromDataRow(DataRow dr)
+        #region Data Retrieval (Queries)
+        public static Result<List<clsSuppliers_BLL>> GetAllSupplier()
         {
-            return new clsSuppliers_BLL(
-                 supplierID: Convert.ToInt32(dr["SupplierID"]),
-                 supplierName: dr["SupplierName"].ToString(),
-                 companyName: dr["CompanyName"].ToString(),
-                 taxNumber: dr["TaxNumber"].ToString(),
-                 phone: dr["Phone"] == DBNull.Value ? null : dr["Phone"].ToString(),
-                 createdAt: Convert.ToDateTime(dr["CreatedAt"]),
-                 isActive: Convert.ToBoolean(dr["IsActive"]),
-                 createdBy: Convert.ToInt32(dr["CreatedBy"]),
-                 updatedBy: dr["UpdatedBy"] == DBNull.Value ? (int?)null : Convert.ToInt32(dr["UpdatedBy"]),
-                 lastUpdated: dr["UpdatedAt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(dr["UpdatedAt"])
-             );
+            string query = @"SELECT * 
+                     FROM Suppliers 
+                     ORDER BY CompanyName ASC, SupplierName ASC";
+            return clsGenericDataAccessBase_DAL.ExecuteReader(query,mapper);
         }
+        public static Result<clsSuppliers_BLL> Find(int SupplierID)
+        {
+            string query = @"SELECT *
+                     FROM Suppliers 
+                     WHERE SupplierID = @SupplierID";
+            SqlParameter[] parms = { new SqlParameter("@SupplierID", SqlDbType.Int) { Value = SupplierID } };
+           return clsGenericDataAccessBase_DAL.ExecuteSingle(query,mapper,parms);
+        }
+        #endregion
 
+        #region Mapping & Helpers
+        private static Func<SqlDataReader, clsSuppliers_BLL> mapper = reader => new clsSuppliers_BLL(
+            supplierID: Convert.ToInt32(reader["SupplierID"]),
+            supplierName: reader["SupplierName"] != DBNull.Value ? reader["SupplierName"].ToString() : "مورد غير معروف",
+            companyName: reader["CompanyName"] != DBNull.Value ? reader["CompanyName"].ToString() : string.Empty,
+            taxNumber: reader["TaxNumber"] != DBNull.Value ? reader["TaxNumber"].ToString() : string.Empty,
+            phone: reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : null,
+            createdAt: Convert.ToDateTime(reader["CreatedAt"]),
+            isActive: Convert.ToBoolean(reader["IsActive"]),
+            createdBy: Convert.ToInt32(reader["CreatedBy"]),
+            updatedBy: reader["UpdatedBy"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["UpdatedBy"]),
+            lastUpdated: reader["UpdatedAt"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["UpdatedAt"])
+        );
+        #endregion
     }
 }

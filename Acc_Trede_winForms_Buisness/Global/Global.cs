@@ -2,10 +2,10 @@
 using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.UserManagement;
 using System;
-using System.Data;
 
-namespace Global
+namespace Acc_Trede_winForms_Buisness.Global
 {
+    #region Enums
     [Flags]
     public enum enPermissions
     {
@@ -17,21 +17,26 @@ namespace Global
         ManageInvoices = 16,  // 1 << 4
         ManageReports = 32,   // 1 << 5
 
-        All = ShowUsers | AddUser | UpdateUser | DeleteUser | ManageInvoices | ManageReports
+        Admin = ShowUsers | AddUser | UpdateUser | DeleteUser | ManageInvoices | ManageReports
+        // total is 63
     }
-
+    #endregion
     public static class GlobalUser
     {
-        // make method to set generate num for invoices
 
+
+        #region Properties
         public static clsUser_BLL CurrentUser { get; private set; }
+        public static bool IsLoggedIn => CurrentUser != null;
+        #endregion
 
-        public static void Initialize(clsUser_BLL user)
+        #region Private Method
+        private static void Initialize(clsUser_BLL user)
         {
             CurrentUser = user ?? throw new ArgumentNullException(nameof(user), "لا يمكن تهيئة المستخدم بكائن فارغ.");
         }
 
-        public static void Initialize(int userId, string username, string fullName, enPermissions permissions)
+        private static void Initialize(int userId, string username, string fullName, enPermissions permissions)
         {
             CurrentUser = new clsUser_BLL
             {
@@ -42,39 +47,39 @@ namespace Global
                 IsActive = true
             };
         }
+        #endregion
 
+        #region Public Method
         public static void LogOut()
         {
             CurrentUser = null;
         }
-
-        public static bool IsLoggedIn => CurrentUser != null;
-
-        public static Result Login(string username, string password,bool rememberMe)
+        public static Result Login(string username, string password, bool rememberMe)
         {
-            Result<DataTable> res = clsUser_BLL.LoginUser(username, password);
+            password = Helper.Encrypt(password);
+            Result<clsUser_BLL> res = clsUser_BLL.Login(username, password);
             if (res.IsFailure)
             {
                 return Result.Failure(res.Error);
             }
 
-            if (res.Value == null || res.Value.Rows.Count == 0)
+            if (res.Value == null || res.Value.UserID == -1)
             {
                 return Result.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
             }
 
-            DataRow dr = res.Value.Rows[0];
 
-            clsUser_BLL user = clsUser_BLL.MapFromDataRow(dr);
-
-            if (!user.IsActive)
+            if (!res.Value.IsActive)
             {
                 return Result.Failure("خطأ: حساب المستخدم معطل، يرجى التواصل مع الإدارة!");
             }
-            Initialize(user);
+            Initialize(res.Value);
 
-            HelperRegistre.Save(username, password, rememberMe);
+            Helper.Save(username, password, rememberMe);
             return Result.Success();
         }
+        #endregion
+
+        // make method to set generate num for invoices
     }
 }

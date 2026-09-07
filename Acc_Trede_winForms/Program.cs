@@ -1,4 +1,5 @@
-﻿using Acc_Trede_winForms.Login;
+﻿using Acc_Trede_winForms.Entities;
+using Acc_Trede_winForms.Login;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace Acc_Trede_winForms
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmLogin());
+            //Application.Run(new ucCustomers());
         }
     }
 }

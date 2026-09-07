@@ -10,6 +10,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
 {
     public class CMsgBox : Form
     {
+        #region Fields
         private Label lblTitle;
         private Label lblMessage;
         private CBtn btnOk;
@@ -18,6 +19,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
         private Panel topBorder;
         private Panel bottomBorder;
 
+        //private Size _formSize= new Size(380, 200);
         // Form Corner Radius
         private int _formBorderRadius = 15;
 
@@ -53,6 +55,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
         private ContentAlignment _btnCancelIconAlignment = ContentAlignment.MiddleLeft;
         private Size _btnCancelIconSize = new Size(20, 20);
         private float _btnCFontSize = 12;
+        #endregion
         #region Native Imports for Smooth Rounding
 
         [DllImport("gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
@@ -256,24 +259,25 @@ namespace Acc_Trede_winForms.Models.CMessageBox
 
         #endregion
 
-        public CMsgBox(string title, string message, bool showCancel = true)
+        public CMsgBox(string title, string message, bool showCancel = true, bool showOk = true)
         {
             InitializeComponent();
 
             lblTitle.Text = title;
             lblMessage.Text = message;
             btnCancel.Visible = showCancel;
-
+            btnOk.Visible = showOk;
             if (!showCancel)
             {
                 btnOk.Location = new Point((bottomPanel.Width - btnOk.Width) / 2, (bottomPanel.Height - btnOk.Height) / 2);
             }
         }
-
-        public void SetPanelColor(Color? pColor, Color? bottomColor, Color? card, bool inTop)
+        public void PerformClik()
         {
-            this.TopBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
-            this.BottomBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
+            btnOk.PerformClick();
+        }
+        public void SetPanelColor(Color? pColor, Color? bottomColor, Color? card, bool inTop = false, bool inBottom = false)
+        {
             this.TitleColor = pColor ?? Color.FromArgb(108, 92, 231);
             this.BtnCancelBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
             this.BtnOkBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
@@ -285,7 +289,11 @@ namespace Acc_Trede_winForms.Models.CMessageBox
             this.CardBackColor = card ?? Color.FromArgb(30, 30, 46);
 
             if (inTop)
+                this.TopBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
+            else
                 this.BottomBorderColor = Color.Transparent;
+            if (inBottom)
+                this.BottomBorderColor = pColor ?? Color.FromArgb(108, 92, 231);
             else
                 this.TopBorderColor = Color.Transparent;
 
@@ -324,7 +332,10 @@ namespace Acc_Trede_winForms.Models.CMessageBox
             this.btnCancel.Font = new Font("Segoe UI", btnSize ?? 12f, FontStyle.Bold);
             this.btnOk.Font = new Font("Segoe UI", btnSize ?? 12f, FontStyle.Bold);
         }
-
+        public void SetSize(short? y, short? h)
+        {
+            this.Size = new Size(h ?? 380, y ?? 200);
+        }
         private void InitializeComponent()
         {
             this.Size = new Size(380, 200);

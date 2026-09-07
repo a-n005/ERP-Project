@@ -74,32 +74,6 @@ namespace Acc_Trede_winForms_DataAccess.Inventory
                 }
             }
         }
-        public static Result<DataTable> GetLowStockProducts()
-        {
-            DataTable dt = new DataTable();
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_GetLowStockProducts", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
         public static Result DeleteProductSoft(int productID, int updatedBy)
         {
 
@@ -128,93 +102,6 @@ namespace Acc_Trede_winForms_DataAccess.Inventory
                 }
             }
         }
-        public static Result<DataTable> GetAllProducts()
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Products 
-                     ORDER BY ProductName ASC";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetProductByID(int productID)
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Products 
-                     WHERE ProductID = @ProductID";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@ProductID", productID);
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetProductByBarcode(string barcode)
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Products 
-                     WHERE Barcode = @Barcode";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@Barcode", barcode);
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
+     
     }
 }

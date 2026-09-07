@@ -8,41 +8,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
 {
     public class clsUsers_DAL
     {
-        /// <summary>
-        /// ميثود للتحقق من تسجيل دخول المستخدم وجلب بياناته وصلاحياته
-        /// </summary>
-        public static Result<DataTable> LoginUser(string username, string password)
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT * 
-                     FROM Users 
-                     WHERE Username = @Username AND PasswordHash = @PasswordHash";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@Username", username);
-                    cmd.Parameters.AddWithValue("@PasswordHash", password);
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-            return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure("اسم المستخدم أو كلمة المرور غير صحيحة.");
-        }
-        public static Result<int> AddNewUser(string username, string password, int permissions, string fullName, string phone )
+        public static Result<int> AddNewUser(string username, string password, int permissions, string fullName, string phone,int createdBy )
         {
             int newUserID = -1;
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -56,6 +22,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
                     cmd.Parameters.AddWithValue("@Permissions", permissions);
                     cmd.Parameters.AddWithValue("@FullName", fullName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@CreatedBy", (object)createdBy ?? DBNull.Value);
 
                     try
                     {
@@ -74,56 +41,7 @@ namespace Acc_Trede_winForms_DataAccess.UserManagement
             }
             return (newUserID > 0) ? Result<int>.Success(newUserID) : Result<int>.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
-        public static Result<DataTable> GetAllUsers()
-        {
-            DataTable dt = new DataTable();
-            string query = "SELECT * FROM Users";
 
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetUserByID(int userid)
-        {
-            DataTable dt = new DataTable();
-            string query = @"SELECT * FROM Users where userid= @userid";
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@userid", userid);
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return (dt.Rows.Count > 0) ? Result<DataTable>.Success(dt) : Result<DataTable>.Failure($"عذراً، لم يتم العثور على مستخدم بالرقم المعرف: {userid}");
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
         public static Result UpdateUser(int userID, string username, int permissions, string fullName, bool isActive, int updatedBy, string phone)
         {
 

@@ -2,16 +2,26 @@
 using Acc_Trede_winForms_DataAccess.Finance;
 using Acc_Trede_winForms_Buisness.Validation;
 using Acc_Trede_winForms_Buisness.Validation.Finance;
-using Global;
 using System;
 using System.Data;
+using System.Data.SqlClient;
+using Acc_Trede_winForms_DataAccess.Global;
+using System.Collections.Generic;
+using Acc_Trede_winForms_Buisness.Global;
 
 namespace Acc_Trede_winForms_Buisness.Finance
 {
     public class clsReceiptVouchers_BLL
     {
+        #region Enums
         private enum _enMode { Add, Update }
+        #endregion
+
+        #region Fields
         private _enMode _Mode;
+        #endregion
+        
+        #region Properties
         public int ReceiptID { get; set; }
         public string VoucherNum { get; set; }
         public DateTime TransactionDate { get; set; }
@@ -23,12 +33,14 @@ namespace Acc_Trede_winForms_Buisness.Finance
         public int? SaleID { get; set; }
         public string Notes { get; set; }
         public int CreatedBy { get; set; }
+        #endregion
+        
+        #region Constructors
         public clsReceiptVouchers_BLL()
         {
             ReceiptID = -1;
             _Mode = _enMode.Add;
         }
-
         private clsReceiptVouchers_BLL(int receiptID, string voucherNum, DateTime transactionDate, decimal amount, string paymentMethod, int? supplierID, int? customerID, int? purchaseReturnID, int? saleID, string notes, int createdBy)
         {
             ReceiptID = receiptID;
@@ -44,10 +56,12 @@ namespace Acc_Trede_winForms_Buisness.Finance
             CreatedBy = createdBy;
             _Mode = _enMode.Update;
         }
-
+        #endregion
+        
+        #region Private Method
         private Result _Add()
         {
-            Result r=new clsReceiptValidator().Validate(this).ToResult();
+            Result r = new clsReceiptValidator().Validate(this).ToResult();
             if (r.IsFailure) return r;
 
             Result<int> res = clsFinancialTransactions_DAL.InsertReceiptVoucher(this.VoucherNum, this.Amount, this.PaymentMethod, this.CustomerID, this.SupplierID, this.Notes, GlobalUser.CurrentUser.UserID, this.SaleID, this.PurchaseReturnID);
@@ -58,37 +72,40 @@ namespace Acc_Trede_winForms_Buisness.Finance
             return Result.Success();
         }
         // Result _Update()=>clsFinancialTransactions_DAL.
+        #endregion
+        
+        #region Public Method
         public Result Save() => _Add();
-        public static Result<DataTable> GetAll() => clsFinancialTransactions_DAL.GetAllTransactionsPayment();
+        #endregion
+        
+        #region Data Retrieval (Queries)
+        public static Result<List<clsReceiptVouchers_BLL>> GetAll()
+        {
+            string query = @"select * from ReceiptVouchers ORDER BY TransactionDate DESC";
+            return clsGenericDataAccessBase_DAL.ExecuteReader(query, Mapper);
+        }
         public static Result<clsReceiptVouchers_BLL> Find(int id)
         {
-            Result<DataTable> res = clsFinancialTransactions_DAL.GetReceiptByReceiptID(id);
-            if (res.IsFailure)
-                return Result<clsReceiptVouchers_BLL>.Failure(res.Error);
-            if (res.Value == null && res.Value.Rows.Count == 0)
-                return Result<clsReceiptVouchers_BLL>.Failure("لم يتم العثور على االسند المطلوب.");
-
-            DataRow dr = res.Value.Rows[0];
-            clsReceiptVouchers_BLL voucher = MapFromDataRow(dr);
-
-            return Result<clsReceiptVouchers_BLL>.Success(voucher);
+            string query = @"SELECT * FROM receiptVouchers  WHERE receiptID = @receiptID";
+            SqlParameter[] parameters = { new SqlParameter("@receiptID", SqlDbType.Int) { Value = id } };
+            return clsGenericDataAccessBase_DAL.ExecuteSingle(query, Mapper, parameters);
         }
-        private static clsReceiptVouchers_BLL MapFromDataRow(DataRow dr)
-        {
-            return new clsReceiptVouchers_BLL(
-                receiptID: Convert.ToInt32(dr["ReceiptID"]),
-                voucherNum: dr["VoucherNumber"].ToString(),
-                transactionDate: Convert.ToDateTime(dr["TransactionDate"]),
-                amount: Convert.ToDecimal(dr["Amount"]),
-                supplierID: dr["SupplierID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["SupplierID"]),
-                customerID: dr["CustomerID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["CustomerID"]),
-                paymentMethod: dr["PaymentMethod"].ToString(),
-                purchaseReturnID: dr["PurchaseReturnID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["PurchaseReturnID"]),
-                saleID: dr["SalesInvoiceID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["SalesInvoiceID"]),
-                notes: dr["Notes"].ToString(),
-                createdBy: Convert.ToInt32(dr["UserID"])
-                );
-
-        }
+        #endregion
+        
+        #region Mapping & Helpers
+        private static Func<SqlDataReader, clsReceiptVouchers_BLL> Mapper = reader => new clsReceiptVouchers_BLL(
+            receiptID: Convert.ToInt32(reader["ReceiptID"]),
+            voucherNum: reader.GetStringSafe("VoucherNumber", string.Empty),
+            transactionDate: Convert.ToDateTime(reader["TransactionDate"]),
+            amount: Convert.ToDecimal(reader["Amount"]),
+            supplierID: reader.GetNullable<int>("SupplierID"),
+            customerID: reader.GetNullable<int>("CustomerID"),
+            paymentMethod: reader.GetStringSafe("PaymentMethod", string.Empty),
+            purchaseReturnID: reader.GetNullable<int>("PurchaseReturnID"),
+            saleID: reader.GetNullable<int>("SalesInvoiceID"),
+            notes: reader.GetStringSafe("Notes"),
+            createdBy: Convert.ToInt32(reader["UserID"])
+        );
+        #endregion
     }
 }

@@ -2,7 +2,6 @@
 using Acc_Trede_winForms.Models.CMessageBox;
 using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.Validation;
-using Global;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -63,7 +62,7 @@ namespace Acc_Trede_winForms.Login
                 else
                     errorProvider1.SetError(txtPassword, "");
             };
-            var (username, pass, remember) = HelperRegistre.Read();
+            var (username, pass, remember) = Helper.Read();
             txtUsername.Texts = username.Trim();
             txtPassword.Texts = pass.Trim();
             cbRememberMe.Checked = remember;

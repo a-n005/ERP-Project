@@ -1,6 +1,7 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms_DataAccess.Global;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -16,10 +17,8 @@ namespace Acc_Trede_winForms_DataAccess.Entities
             {
                 using (SqlCommand cmd = new SqlCommand("sp_InsertCustomer", conn))
                 {
-                    // تحديد نوع الأمر كـ Stored Procedure
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات المطلوبة للإجراء المخزن مع معالجة القيم الفارغة
                     cmd.Parameters.AddWithValue("@CustomerName", customerName);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value);
@@ -94,63 +93,6 @@ namespace Acc_Trede_winForms_DataAccess.Entities
                 }
             }
         }
-        public static Result<DataTable> GetAllCustomers()
-        {
-            DataTable dt = new DataTable();
-            string query = @"SELECT *
-                     FROM Customers 
-                     ORDER BY CustomerName ASC";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetCustomerByID(int customerID)
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Customers 
-                     WHERE CustomerID = @CustomerID";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@CustomerID", customerID);
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
+ 
     }
 }

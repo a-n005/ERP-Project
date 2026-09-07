@@ -1,6 +1,6 @@
 ﻿using Acc_Trede_winForms_Buisness.Purchases;
 using FluentValidation;
-using Global;
+using Acc_Trede_winForms_Buisness.Global;
 
 namespace Acc_Trede_winForms_Buisness.Validation.Purchases
 {
@@ -29,7 +29,7 @@ namespace Acc_Trede_winForms_Buisness.Validation.Purchases
             // Cart validation
             RuleFor(x => x.Cart)
                 .NotNull()
-                .Must(cart => cart.Rows.Count > 0)
+                .Must(cart => cart != null)
                 .WithMessage("الفاتورة لا تحتوي على أصناف.");
 
             // Amount validtion

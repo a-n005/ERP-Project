@@ -30,7 +30,6 @@ namespace Acc_Trede_winForms_DataAccess.Purchases
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات العادية
                     command.Parameters.AddWithValue("@SupplierInvoiceNumber", string.IsNullOrEmpty(supplierInvoiceNumber) ? (object)DBNull.Value : supplierInvoiceNumber);
                     command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@SupplierID", supplierID.HasValue ? (object)supplierID.Value : DBNull.Value);
@@ -82,65 +81,6 @@ namespace Acc_Trede_winForms_DataAccess.Purchases
                 }
             }
             return rowAffected > 0 ? Result.Success() : Result.Failure($"لم يتم تحديث بيانات الفاتورة رقم ({invoiceID})، قد يكون المعرف غير موجود.");
-        }
-        /// <summary>
-        /// جلب قائمة بجميع فواتير المشتريات المسجلة في النظام (البيانات الأساسية للرأس)
-        /// </summary>
-        public static Result<DataTable> GetAllPurchaseInvoices()
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT PI.PurchaseInvoiceID, PI.SupplierInvoiceNumber, PI.InvoiceDate, 
-                            S.SupplierName, (TotalAmount - Discount + TaxAmount) AS NetAmount, PI.PaymentType, PI.TotalAmount, PI.Discount, PI.TaxAmount
-                     FROM PurchaseInvoices PI
-                     LEFT JOIN Suppliers S ON PI.SupplierID = S.SupplierID
-                     ORDER BY PI.InvoiceDate DESC";
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.HasRows) dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-
-        public static Result<DataTable> GetPurchaseInvoiceByID(int purchaseInvoiceID)
-        {
-            DataTable dt = new DataTable();
-            string query = "select *,(TotalAmount - Discount + TaxAmount) AS NetAmount from purchaseInvoices where purchaseInvoiceID = @PurchaseInvoiceID";
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@PurchaseInvoiceID", purchaseInvoiceID);
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.HasRows) dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
         }
     }
 }

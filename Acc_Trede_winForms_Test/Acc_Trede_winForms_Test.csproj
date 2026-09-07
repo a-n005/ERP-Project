@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Acc_Trede_winForms_Buisness\Acc_Trede_winForms_Buisness.csproj" />
     <ProjectReference Include="..\Acc_Trede_winForms_DataAccess\Acc_Trede_winForms_DataAccess.csproj" />
   </ItemGroup>
 

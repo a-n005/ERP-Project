@@ -1,17 +1,29 @@
 ﻿using Acc_Trade_Core;
-using Acc_Trede_winForms_DataAccess.Purchases;
+using Acc_Trede_winForms.Entities;
+using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.Validation;
 using Acc_Trede_winForms_Buisness.Validation.Purchases;
-using Global;
+using Acc_Trede_winForms_DataAccess.Global;
+using Acc_Trede_winForms_DataAccess.Purchases;
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace Acc_Trede_winForms_Buisness.Purchases
 {
     public class clsPurchaseInvoices_BLL
     {
+        #region Enums
         enum _enMode { Add, Update };
+        #endregion
+
+        #region Fields
         _enMode _Mode = _enMode.Add;
+        private clsSuppliers_BLL _supplier;          
+        #endregion
+
+        #region Properties
         public int PurchaseID { get; set; }
         public string SupplierInvoiceNum { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -23,14 +35,32 @@ namespace Acc_Trede_winForms_Buisness.Purchases
         public decimal NetAmount => (TotalAmount - Discount) + TaxAmount;
         public decimal CashAmount { get; set; }
         public decimal CardAmount { get; set; }
-        public decimal RemainingAmount { get; private set; }
-        public DataTable Cart { get; set; }
+        public decimal RemainingAmount { get; set; } //edit like this => NetAmount - (CashAmount + CardAmount); 
+        public clsSuppliers_BLL Supplier 
+        {
+            get
+            {
+                if (_supplier == null && SupplierID.HasValue)
+                {
+                    var result = clsSuppliers_BLL.Find(SupplierID.Value);
+                    if (result.IsSuccess)
+                    {
+                        _supplier = result.Value;
+                    }
+                }
+                return _supplier;
+            }
+        }
+        public List<clsPurchaseInvoiceDetails_BLL> Cart { get; set; } = new List<clsPurchaseInvoiceDetails_BLL>();
+        #endregion
+
+        #region Cunstructors
         public clsPurchaseInvoices_BLL()
         {
             this.PurchaseID = -1;
             this._Mode = _enMode.Add;
         }
-        public clsPurchaseInvoices_BLL(int purchaseID, string supplierInvoiceNum, DateTime createdAt, int createdBy, int? supplierID, decimal total, decimal tax, decimal discount, decimal cash, decimal card, decimal remaining)
+        public clsPurchaseInvoices_BLL(int purchaseID, string supplierInvoiceNum, DateTime createdAt, int createdBy, int? supplierID, decimal total, decimal tax, decimal discount, decimal cash, decimal card,decimal remaining)
         {
             this.PurchaseID = purchaseID;
             this.SupplierInvoiceNum = supplierInvoiceNum;
@@ -45,12 +75,15 @@ namespace Acc_Trede_winForms_Buisness.Purchases
             this.RemainingAmount = remaining;
             this._Mode = _enMode.Update;
         }
+        #endregion
+
+        #region Private Method
         Result _Add()
         {
             Result r = new clsPurchaseInvoicesValidator(clsPurchaseInvoicesValidator.enMode.ForAdd).Validate(this).ToResult();
             if (r.IsFailure) return r;
 
-            Result<int> res = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(this.SupplierInvoiceNum, GlobalUser.CurrentUser.UserID, this.SupplierID, this.TotalAmount, this.TaxAmount, this.Discount, this.CashAmount, this.CardAmount, this.Cart);
+            Result<int> res = clsPurchaseInvoices_DAL.InsertPurchaseInvoice(this.SupplierInvoiceNum, GlobalUser.CurrentUser.UserID, this.SupplierID, this.TotalAmount, this.TaxAmount, this.Discount, this.CashAmount, this.CardAmount,ConvertCartToDataTable(this.Cart));
             if (res.IsFailure)
                 return Result.Failure(res.Error);
             this.PurchaseID = res.Value;
@@ -64,37 +97,60 @@ namespace Acc_Trede_winForms_Buisness.Purchases
 
             return clsPurchaseInvoices_DAL.UpdateInvoiceWithSupplierID(this.PurchaseID, this.SupplierID);
         }
+        #endregion
+
+        #region Public Method
         public Result Save() => _Mode == _enMode.Add ? _Add() : _Update();
-        public static Result<DataTable> GetAllInvoices() => clsPurchaseInvoices_DAL.GetAllPurchaseInvoices();
+        #endregion
+
+        #region Data Retrieval (Queries)
+        public static Result<List<clsPurchaseInvoices_BLL>> GetAllInvoices()
+        {
+
+            string query = @"SELECT *
+                     FROM PurchaseInvoices 
+                     ORDER BY InvoiceDate DESC";
+            return clsGenericDataAccessBase_DAL.ExecuteReader(query, mapper);
+        }
         public static Result<clsPurchaseInvoices_BLL> Find(int id)
         {
-            Result<DataTable> res = clsPurchaseInvoices_DAL.GetPurchaseInvoiceByID(id);
-            if (res.IsFailure)
-                return Result<clsPurchaseInvoices_BLL>.Failure(res.Error);
-            if (res.Value == null && res.Value.Rows.Count == 0)
-                return Result<clsPurchaseInvoices_BLL>.Failure("لم يتم العثور على المنتج المطلوب.");
-
-            DataRow dr = res.Value.Rows[0];
-            clsPurchaseInvoices_BLL invoice = MapFromDataRow(dr);
-
-            return Result<clsPurchaseInvoices_BLL>.Success(invoice);
+            string query = "select * from purchaseInvoices where purchaseInvoiceID = @PurchaseInvoiceID";
+            SqlParameter[] sp = { new SqlParameter("@PurchaseInvoiceID", SqlDbType.Int) { Value = id } };
+            return clsGenericDataAccessBase_DAL.ExecuteSingle(query, mapper, sp);
         }
-        private static clsPurchaseInvoices_BLL MapFromDataRow(DataRow dr)
+        #endregion
+
+        #region Mapping & Helpers
+        private  static DataTable ConvertCartToDataTable(List<clsPurchaseInvoiceDetails_BLL> cart)
         {
-            return new clsPurchaseInvoices_BLL(
-                purchaseID: Convert.ToInt32(dr["PurchaseInvoiceID"]),
-                supplierInvoiceNum: dr["SupplierInvoiceNumber"].ToString(),
-                createdAt: Convert.ToDateTime(dr["InvoiceDate"]),
-                createdBy: Convert.ToInt32(dr["UserID"]),
-                supplierID: dr["SupplierID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["SupplierID"]),
-                total: Convert.ToDecimal(dr["TotalAmount"]),
-                tax: Convert.ToDecimal(dr["TaxAmount"]),
-                discount: Convert.ToDecimal(dr["Discount"]),
-                cash: Convert.ToDecimal(dr["CashAmount"]),
-                card: Convert.ToDecimal(dr["CardAmount"]),
-                remaining: Convert.ToDecimal(dr["RemainingAmount"])
-                );
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Barcode", typeof(string));
+            dt.Columns.Add("ProductName", typeof(string));
+            dt.Columns.Add("Quantity", typeof(int));
+            dt.Columns.Add("CostPrice", typeof(decimal));
 
+            if (cart != null)
+            {
+                foreach (var item in cart)
+                {
+                    dt.Rows.Add(item.Product?.Barcode, item.Product?.ProductName, item.Quantity, item.UnitPrice);
+                }
+            }
+            return dt;
         }
+        private static Func<SqlDataReader, clsPurchaseInvoices_BLL> mapper = reader => new clsPurchaseInvoices_BLL(
+   purchaseID: Convert.ToInt32(reader["PurchaseInvoiceID"]),
+   supplierInvoiceNum: reader.GetStringSafe("SupplierInvoiceNumber", string.Empty),
+   createdAt: Convert.ToDateTime(reader["InvoiceDate"]),
+   createdBy: reader.GetNullable<int>("CreatedBy") ?? 0,
+   supplierID: reader.GetNullable<int>("SupplierID"),
+   total: Convert.ToDecimal(reader["TotalAmount"]),
+   tax: Convert.ToDecimal(reader["TaxAmount"]),
+   discount: Convert.ToDecimal(reader["Discount"]),
+   cash: Convert.ToDecimal(reader["CashAmount"]),
+   card: Convert.ToDecimal(reader["CardAmount"]),
+   remaining: Convert.ToDecimal(reader["RemainingAmount"])
+);
+        #endregion
     }
 }

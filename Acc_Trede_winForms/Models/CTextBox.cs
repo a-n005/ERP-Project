@@ -53,6 +53,7 @@ namespace Acc_Trede_winForms.Models
         }
 
         #region -> Properties
+       
         // Add these properties inside CTextBox.cs
         [Browsable(false)]
         public int SelectionStart
@@ -75,9 +76,14 @@ namespace Acc_Trede_winForms.Models
             get => leftIcon;
             set
             {
-                leftIcon = value;
-                UpdatePadding();
-                this.Invalidate();
+                // Dispose old instance to prevent memory leaks
+                if (leftIcon != value)
+                {
+                    leftIcon?.Dispose();
+                    leftIcon = value != null ? new Bitmap(value) : null;
+                    UpdatePadding();
+                    this.Invalidate();
+                }
             }
         }
 
@@ -87,9 +93,14 @@ namespace Acc_Trede_winForms.Models
             get => rightIcon;
             set
             {
-                rightIcon = value;
-                UpdatePadding();
-                this.Invalidate();
+                // Dispose old instance to prevent memory leaks
+                if (rightIcon != value)
+                {
+                    rightIcon?.Dispose();
+                    rightIcon = value != null ? new Bitmap(value) : null;
+                    UpdatePadding();
+                    this.Invalidate();
+                }
             }
         }
 
@@ -198,7 +209,7 @@ namespace Acc_Trede_winForms.Models
                 base.Font = value;
                 textBox1.Font = value;
                 if (this.DesignMode)
-                    UpdateControlHeight();
+                    UpdateControlRegion();
             }
         }
 
@@ -289,14 +300,13 @@ namespace Acc_Trede_winForms.Models
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            if (this.DesignMode)
-                UpdateControlHeight();
+            UpdateControlRegion();
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            UpdateControlHeight();
+            UpdateControlRegion();
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -333,66 +343,105 @@ namespace Acc_Trede_winForms.Models
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+
+            if (this.Width <= 1 || this.Height <= 1 || e.Graphics == null)
+                return;
+
             Graphics graph = e.Graphics;
 
             // Draw Border Logic
             if (borderRadius > 1) // Rounded TextBox
             {
                 var rectBorderSmooth = this.ClientRectangle;
-                var rectBorder = Rectangle.Inflate(rectBorderSmooth, -borderSize, -borderSize);
                 int smoothSize = borderSize > 0 ? borderSize : 1;
 
-                using (GraphicsPath pathBorderSmooth = GetFigurePath(rectBorderSmooth, borderRadius))
-                using (GraphicsPath pathBorder = GetFigurePath(rectBorder, borderRadius - borderSize))
+                int inflateValue = -borderSize;
+                if (rectBorderSmooth.Width + (inflateValue * 2) <= 0 || rectBorderSmooth.Height + (inflateValue * 2) <= 0)
+                    inflateValue = 0;
+
+                var rectBorder = Rectangle.Inflate(rectBorderSmooth, inflateValue, inflateValue);
+
+                int safeRadius = Math.Max(1, Math.Min(borderRadius, Math.Min(this.Width, this.Height) / 2));
+                int safeInnerRadius = Math.Max(1, safeRadius - borderSize);
+
+                using (GraphicsPath pathBorderSmooth = GetFigurePath(rectBorderSmooth, safeRadius))
+                using (GraphicsPath pathBorder = GetFigurePath(rectBorder, safeInnerRadius))
                 using (Pen penBorderSmooth = new Pen(this.Parent != null ? this.Parent.BackColor : this.BackColor, smoothSize))
                 using (Pen penBorder = new Pen(borderColor, borderSize))
                 {
-                    this.Region = new Region(pathBorderSmooth);
-                    if (borderRadius > 15) SetTextBoxRoundedRegion();
-                    graph.SmoothingMode = SmoothingMode.AntiAlias;
-                    penBorder.Alignment = PenAlignment.Center;
-                    if (isFocused) penBorder.Color = borderFocusColor;
+                    try
+                    {
+                        // 🛑 تم حذف this.Region من هنا لمنع انهيار الـ Handles
+                        graph.SmoothingMode = SmoothingMode.AntiAlias;
+                        penBorder.Alignment = PenAlignment.Center;
+                        if (isFocused) penBorder.Color = borderFocusColor;
 
-                    if (underlinedStyle)
-                    {
-                        graph.DrawPath(penBorderSmooth, pathBorderSmooth);
-                        graph.SmoothingMode = SmoothingMode.None;
-                        graph.DrawLine(penBorder, 0, this.Height - 1, this.Width, this.Height - 1);
+                        if (underlinedStyle)
+                        {
+                            graph.DrawPath(penBorderSmooth, pathBorderSmooth);
+                            graph.SmoothingMode = SmoothingMode.None;
+                            graph.DrawLine(penBorder, 0, this.Height - 1, this.Width, this.Height - 1);
+                        }
+                        else
+                        {
+                            graph.DrawPath(penBorderSmooth, pathBorderSmooth);
+                            graph.DrawPath(penBorder, pathBorder);
+                        }
                     }
-                    else
-                    {
-                        graph.DrawPath(penBorderSmooth, pathBorderSmooth);
-                        graph.DrawPath(penBorder, pathBorder);
-                    }
+                    catch (ArgumentException) { }
                 }
             }
             else // Square/Normal TextBox
             {
                 using (Pen penBorder = new Pen(borderColor, borderSize))
                 {
-                    this.Region = new Region(this.ClientRectangle);
-                    penBorder.Alignment = PenAlignment.Inset;
-                    if (isFocused) penBorder.Color = borderFocusColor;
+                    try
+                    {
+                        penBorder.Alignment = PenAlignment.Inset;
+                        if (isFocused) penBorder.Color = borderFocusColor;
 
-                    if (underlinedStyle)
-                        graph.DrawLine(penBorder, 0, this.Height - 1, this.Width, this.Height - 1);
-                    else
-                        graph.DrawRectangle(penBorder, 0, 0, this.Width - 0.5F, this.Height - 0.5F);
+                        if (underlinedStyle)
+                            graph.DrawLine(penBorder, 0, this.Height - 1, this.Width, this.Height - 1);
+                        else
+                            graph.DrawRectangle(penBorder, 0, 0, this.Width - 0.5F, this.Height - 0.5F);
+                    }
+                    catch (ArgumentException) { }
+                }
+            }
+            // Draw Icons Logic (مع أغطية أمان للحماية من الانهيار)
+            if (leftIcon != null && iconSize.Width > 0 && iconSize.Height > 0 && this.Height > iconSize.Height)
+            {
+                try
+                {
+                    // التأكد من أن الصورة لم يتم التفريغ منها (Not Disposed)
+                    if (leftIcon.Width > 0 && leftIcon.Height > 0)
+                    {
+                        int yPos = (this.Height - iconSize.Height) / 2;
+                        graph.DrawImage(leftIcon, basePaddingLeft, yPos, iconSize.Width, iconSize.Height);
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    // حماية متقدمة في حال تضرر ملف الصورة
                 }
             }
 
-            // Draw Icons Logic
-            if (leftIcon != null)
+            if (rightIcon != null && iconSize.Width > 0 && iconSize.Height > 0 && this.Height > iconSize.Height)
             {
-                int yPos = (this.Height - iconSize.Height) / 2;
-                graph.DrawImage(leftIcon, basePaddingLeft, yPos, iconSize.Width, iconSize.Height);
-            }
+                try
+                {
+                    if (rightIcon.Width > 0 && rightIcon.Height > 0)
+                    {
+                        int yPos = (this.Height - iconSize.Height) / 2;
+                        int xPos = this.Width - basePaddingRight - iconSize.Width;
 
-            if (rightIcon != null)
-            {
-                int yPos = (this.Height - iconSize.Height) / 2;
-                int xPos = this.Width - basePaddingRight - iconSize.Width;
-                graph.DrawImage(rightIcon, xPos, yPos, iconSize.Width, iconSize.Height);
+                        if (xPos > 0)
+                        {
+                            graph.DrawImage(rightIcon, xPos, yPos, iconSize.Width, iconSize.Height);
+                        }
+                    }
+                }
+                catch (ArgumentException) { }
             }
         }
         #endregion
@@ -480,16 +529,24 @@ namespace Acc_Trede_winForms.Models
             pathTxt.Dispose();
         }
 
-        private void UpdateControlHeight()
+        private void UpdateControlRegion()
         {
-            if (textBox1.Multiline == false)
-            {
-                int txtHeight = TextRenderer.MeasureText("Text", this.Font).Height + 1;
-                textBox1.Multiline = true;
-                textBox1.MinimumSize = new Size(0, txtHeight);
-                textBox1.Multiline = false;
+            if (this.Width <= 1 || this.Height <= 1) return;
 
-                this.Height = textBox1.Height + this.Padding.Top + this.Padding.Bottom;
+            // تنظيف الـ Region القديم للحد من تسريب الذاكرة
+            this.Region?.Dispose();
+
+            if (borderRadius > 1)
+            {
+                int safeRadius = Math.Max(1, Math.Min(borderRadius, Math.Min(this.Width, this.Height) / 2));
+                using (GraphicsPath pathSmooth = GetFigurePath(this.ClientRectangle, safeRadius))
+                {
+                    this.Region = new Region(pathSmooth);
+                }
+            }
+            else
+            {
+                this.Region = new Region(this.ClientRectangle);
             }
         }
         #endregion

@@ -1,9 +1,9 @@
 ﻿using Acc_Trade_Core;
+using Acc_Trede_winForms.Entities;
 using Acc_Trede_winForms.Models.CButton;
 using Acc_Trede_winForms.Properties;
 using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.Validation;
-using Global;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,11 +19,12 @@ namespace Acc_Trede_winForms.Login
 {
     public partial class frmLogin : Form
     {
+        
         public frmLogin()
         {
             InitializeComponent();
         }
-
+        public  bool isHide {  get=> pList.Size.Width==193? true:false; }
         private void Login_Load(object sender, EventArgs e)
         {
             p1InLoad();
@@ -31,7 +32,7 @@ namespace Acc_Trede_winForms.Login
 
             ShowLoginControl();
 
-            
+
         }
         #region Work Screen Panel
         private void ShowLoginControl()
@@ -66,9 +67,7 @@ namespace Acc_Trede_winForms.Login
             // 3. Resize/Adjust container panel to fit full screen dimensions
             pScreen.Dock = DockStyle.Fill; // Automatically expands to cover screen space
 
-            // 4. Load your main dashboard/screen control here
-            // ucDashboard dashboard = new ucDashboard { Dock = DockStyle.Fill };
-            // panelContainer.Controls.Add(dashboard);
+            // make perform click on sales
         }
         #endregion
         #region Top Panel
@@ -93,6 +92,7 @@ namespace Acc_Trede_winForms.Login
             GlobalUser.LogOut();
             this.WindowState = FormWindowState.Normal;
             pScreen.Dock = DockStyle.None;
+            pScreen.Tag = "";
             ShowLoginControl();
         }
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -133,7 +133,6 @@ namespace Acc_Trede_winForms.Login
         private void cBtn1_Click(object sender, EventArgs e)
         {
             btnLogout.PerformClick();
-            Environment.Exit(0);
             Application.Exit();
         }
 
@@ -142,6 +141,11 @@ namespace Acc_Trede_winForms.Login
         private void pListInLoad()
         {
             pList.Paint += (s, ev) => p_Paint(pList, ev, null, 2, false, false, true);
+        }
+        private void btnCustomers_Click(object sender, EventArgs e)
+        {
+            if (pScreen.Tag?.ToString() != "customers")
+                ShowScreen(new ucCustomers(), "customers");
         }
         private void btnHide_Click(object sender, EventArgs e)
         {
@@ -170,6 +174,7 @@ namespace Acc_Trede_winForms.Login
                         btn.Text = btn.Tag.ToString();
             }
         }
+
         #endregion
         private void p_Paint(Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2, bool t = false, bool b = false, bool l = false, bool r = false)
         {
@@ -197,5 +202,23 @@ namespace Acc_Trede_winForms.Login
 
             }
         }
+
+        private void ShowScreen(UserControl newScreen, string tag)
+        {
+            // Clear current control from the display panel
+            pScreen.Controls.Clear();
+            pScreen.Tag = tag;
+            // Configure the new UserControl to stretch across the panel
+            newScreen.Dock = DockStyle.Fill;
+
+            // Add and bring to front
+            pScreen.Controls.Add(newScreen);
+            newScreen.BringToFront();
+
+            this.ActiveControl = newScreen;
+            newScreen.Focus();
+        }
+
+
     }
 }

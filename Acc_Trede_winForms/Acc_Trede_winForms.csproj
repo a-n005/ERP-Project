@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\ucCustomers.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Entities\ucCustomers.Designer.cs">
+      <DependentUpon>ucCustomers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -70,11 +76,17 @@
     <Compile Include="Models\CCB.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Models\CDGV\CDGV.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Models\CMessageBox\CMsgB.cs" />
     <Compile Include="Models\CMessageBox\CMsgBox.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Models\CRB.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Models\cscrollbar\CScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Models\CTextBox.cs">
@@ -86,6 +98,9 @@
     <Compile Include="Models\Extenstions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Entities\ucCustomers.resx">
+      <DependentUpon>ucCustomers.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Login\frmLogin.resx">
       <DependentUpon>frmLogin.cs</DependentUpon>
     </EmbeddedResource>
@@ -146,6 +161,27 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\arrow_to_right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Phone.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Tax.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\People.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Search Client.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Update.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

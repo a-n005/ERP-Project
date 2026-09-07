@@ -53,10 +53,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Global\Helper.cs" />
     <Compile Include="Entities\clsCustomers_BLL.cs" />
     <Compile Include="Finance\clsPaymentVouchers_BLL.cs" />
-    <Compile Include="Global\CryptoHelper.cs" />
-    <Compile Include="Global\HelperRegistre.cs" />
     <Compile Include="Inventory\clsProducts_BLL.cs" />
     <Compile Include="Purchases\clsPurchaseInvoiceDetails_BLL.cs" />
     <Compile Include="Purchases\clsPurchaseInvoices_BLL.cs" />

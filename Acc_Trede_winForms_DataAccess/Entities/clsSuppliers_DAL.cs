@@ -17,10 +17,8 @@ namespace Acc_Trede_winForms_DataAccess.Entities
             {
                 using (SqlCommand cmd = new SqlCommand("sp_InsertSupplier", conn))
                 {
-                    // تحديد نوع الأمر كـ Stored Procedure
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // تمرير البارامترات المطلوبة للإجراء المخزن مع معالجة القيم الفارغة
                     cmd.Parameters.AddWithValue("@SupplierName", supplierName);
                     cmd.Parameters.AddWithValue("@CompanyName", (object)companyName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
@@ -30,16 +28,13 @@ namespace Acc_Trede_winForms_DataAccess.Entities
                     try
                     {
                         conn.Open();
-                        // تنفيذ عملية الإدخال
                         object res = cmd.ExecuteScalar();
 
                         newID = (res != null) && int.TryParse(res.ToString(), out int ID) ? ID : -1;
                     }
                     catch (Exception ex)
                     {
-
                         return Result<int>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-
                     }
                 }
             }
@@ -95,65 +90,6 @@ namespace Acc_Trede_winForms_DataAccess.Entities
                     catch (Exception ex)
                     {
                         return Result.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetAllSuppliers()
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Suppliers 
-                     ORDER BY CompanyName ASC, SupplierName ASC";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
-                    }
-                }
-            }
-        }
-        public static Result<DataTable> GetSupplierByID(int supplierID)
-        {
-            DataTable dt = new DataTable();
-
-            string query = @"SELECT *
-                     FROM Suppliers 
-                     WHERE SupplierID = @SupplierID";
-
-            using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@SupplierID", supplierID);
-
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                        }
-                        return Result<DataTable>.Success(dt);
-                    }
-                    catch (Exception ex)
-                    {
-                        return Result<DataTable>.Failure($"خطأ في الاتصال بقاعدة البيانات: {ex.Message}");
                     }
                 }
             }

@@ -2,16 +2,26 @@
 using Acc_Trede_winForms_DataAccess.Finance;
 using Acc_Trede_winForms_Buisness.Validation;
 using Acc_Trede_winForms_Buisness.Validation.Finance;
-using Global;
+using Acc_Trede_winForms_Buisness.Global;
 using System;
 using System.Data;
+using System.Data.SqlClient;
+using System.Collections.Generic;
+using Acc_Trede_winForms_DataAccess.Global;
 
 namespace Acc_Trede_winForms_Buisness.Finance
 {
     public class clsPaymentVouchers_BLL
     {
+        #region Enums
         private enum _enMode { Add, Update }
+        #endregion
+
+        #region Fields
         private _enMode _Mode;
+        #endregion
+
+        #region Properties
         public int PaymentID { get; set; }
         public string VoucherNum { get; set; }
         public DateTime TransactionDate { get; set; }
@@ -23,6 +33,9 @@ namespace Acc_Trede_winForms_Buisness.Finance
         public int? SaleReturnID { get; set; }
         public string Notes { get; set; }
         public int CreatedBy { get; set; }
+        #endregion
+
+        #region Constructors
         public clsPaymentVouchers_BLL()
         {
             PaymentID = -1;
@@ -44,7 +57,9 @@ namespace Acc_Trede_winForms_Buisness.Finance
             CreatedBy = createdBy;
             _Mode = _enMode.Update;
         }
+        #endregion
 
+        #region Private Method
         private Result _Add()
         {
             Result r = new clsPaymentValidator().Validate(this).ToResult();
@@ -58,37 +73,40 @@ namespace Acc_Trede_winForms_Buisness.Finance
             return Result.Success();
         }
         // Result _Update()=>clsFinancialTransactions_DAL.
+        #endregion
+
+        #region Public Method
         public Result Save() => _Add();
-        public static Result<DataTable> GetAll() => clsFinancialTransactions_DAL.GetAllTransactionsPayment();
+        #endregion
+
+        #region Data Retrieval (Queries)
+        public static Result<List<clsPaymentVouchers_BLL>> GetAll()
+        {
+            string query = @"select * from PaymentVouchers ORDER BY TransactionDate DESC";
+            return clsGenericDataAccessBase_DAL.ExecuteReader(query, Mapper);
+        }
         public static Result<clsPaymentVouchers_BLL> Find(int id)
         {
-            Result<DataTable> res = clsFinancialTransactions_DAL.GetPaymentByPaymentID(id);
-            if (res.IsFailure)
-                return Result<clsPaymentVouchers_BLL>.Failure(res.Error);
-            if (res.Value == null && res.Value.Rows.Count == 0)
-                return Result<clsPaymentVouchers_BLL>.Failure("لم يتم العثور على االسند المطلوب.");
-
-            DataRow dr = res.Value.Rows[0];
-            clsPaymentVouchers_BLL voucher = MapFromDataRow(dr);
-
-            return Result<clsPaymentVouchers_BLL>.Success(voucher);
+            string query = @"SELECT * FROM paymentVouchers  WHERE PaymentID = @paymentID";
+            SqlParameter[] parms = { new SqlParameter("@paymentID", SqlDbType.Int) { Value = id } };
+            return clsGenericDataAccessBase_DAL.ExecuteSingle(query, Mapper, parms);
         }
-        private static clsPaymentVouchers_BLL MapFromDataRow(DataRow dr)
-        {
-            return new clsPaymentVouchers_BLL(
-                paymentID: Convert.ToInt32(dr["PaymentID"]),
-                voucherNum: dr["VoucherNumber"].ToString(),
-                transactionDate: Convert.ToDateTime(dr["TransactionDate"]),
-                amount: Convert.ToDecimal(dr["Amount"]),
-                supplierID: dr["SupplierID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["SupplierID"]),
-                customerID: dr["CustomerID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["CustomerID"]),
-                paymentMethod: dr["PaymentMethod"].ToString(),
-                purchaseID: dr["PurchaseInvoiceID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["PurchaseInvoiceID"]),
-                saleReturnID: dr["SalesReturnID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(dr["SalesReturnID"]),
-                notes: dr["Notes"].ToString(),
-                createdBy: Convert.ToInt32(dr["UserID"])
-                );
+        #endregion
 
-        }
+        #region Mapping & Helpers
+        private static Func<SqlDataReader, clsPaymentVouchers_BLL> Mapper = reader => new clsPaymentVouchers_BLL(
+           paymentID: Convert.ToInt32(reader["PaymentID"]),
+           voucherNum: reader["VoucherNumber"] != DBNull.Value ? reader["VoucherNumber"].ToString() : string.Empty,
+           transactionDate: Convert.ToDateTime(reader["TransactionDate"]),
+           amount: Convert.ToDecimal(reader["Amount"]),
+           supplierID: reader["SupplierID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(reader["SupplierID"]),
+           customerID: reader["CustomerID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(reader["CustomerID"]),
+           paymentMethod: reader["PaymentMethod"] != DBNull.Value ? reader["PaymentMethod"].ToString() : string.Empty,
+           purchaseID: reader["PurchaseInvoiceID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(reader["PurchaseInvoiceID"]),
+           saleReturnID: reader["SalesReturnID"] == DBNull.Value ? (Int32?)null : Convert.ToInt32(reader["SalesReturnID"]),
+           notes: reader["Notes"] != DBNull.Value ? reader["Notes"].ToString() : null,
+           createdBy: Convert.ToInt32(reader["UserID"])
+       );
+        #endregion
     }
 }
