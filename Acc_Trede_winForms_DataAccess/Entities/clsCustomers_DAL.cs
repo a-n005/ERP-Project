@@ -42,7 +42,7 @@ namespace Acc_Trede_winForms_DataAccess.Entities
             return (newID > 0) ? Result<int>.Success(newID) : Result<int>.Failure("فشل إضافة المستخدم: لم يتم إرجاع معرف جديد من قاعدة البيانات.");
         }
         public static Result UpdateCustomer(int customerID, string customerName,
-            string phone, string taxNumber, int updatedBy)
+            string phone, string taxNumber, int updatedBy, bool isActive)
         {
             using (SqlConnection conn = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -55,6 +55,7 @@ namespace Acc_Trede_winForms_DataAccess.Entities
                     cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@TaxNumber", (object)taxNumber ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
+                    cmd.Parameters.AddWithValue("@IsActive", isActive);
 
                     try
                     {

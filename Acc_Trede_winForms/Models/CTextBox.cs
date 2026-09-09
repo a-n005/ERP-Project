@@ -41,6 +41,11 @@ namespace Acc_Trede_winForms.Models
         public event EventHandler LeftIconClick;
         public event EventHandler RightIconClick;
 
+        // NEW: Basic missing events
+        public event KeyEventHandler _KeyDown;
+        public event KeyEventHandler _KeyUp;
+        public event EventHandler _ReadOnlyChanged;
+
         #endregion
 
         // -> Constructor
@@ -49,11 +54,18 @@ namespace Acc_Trede_winForms.Models
             InitializeComponent();
             UpdatePadding();
 
+            this.textBox1.TextChanged += textBox1_TextChanged;
             this.textBox1.Enter += TextBox1_Enter;
+
+            // NEW: Event wireups for input and mouse interaction
+            this.textBox1.KeyDown += (s, e) => _KeyDown?.Invoke(this, e);
+            this.textBox1.KeyUp += (s, e) => _KeyUp?.Invoke(this, e);
+            this.textBox1.ReadOnlyChanged += (s, e) => _ReadOnlyChanged?.Invoke(this, e);
+            this.textBox1.MouseMove += TextBox1_MouseMove;
         }
 
         #region -> Properties
-       
+
         // Add these properties inside CTextBox.cs
         [Browsable(false)]
         public int SelectionStart
@@ -69,6 +81,34 @@ namespace Acc_Trede_winForms.Models
             set => textBox1.SelectionLength = value;
         }
 
+        // NEW: Missing Text Selection & ReadOnly Properties
+        [Browsable(false)]
+        public string SelectedText
+        {
+            get => textBox1.SelectedText;
+            set => textBox1.SelectedText = value;
+        }
+
+        [Category("Custom Properties")]
+        public bool ReadOnly
+        {
+            get => textBox1.ReadOnly;
+            set => textBox1.ReadOnly = value;
+        }
+
+        [Category("Custom Properties")]
+        public int MaxLength
+        {
+            get => textBox1.MaxLength;
+            set => textBox1.MaxLength = value;
+        }
+
+        [Category("Custom Properties")]
+        public HorizontalAlignment TextAlign
+        {
+            get => textBox1.TextAlign;
+            set => textBox1.TextAlign = value;
+        }
 
         [Category("Custom Properties")]
         public Image LeftIcon
@@ -214,7 +254,7 @@ namespace Acc_Trede_winForms.Models
         }
 
         [Category("Custom Properties")]
-        public string Texts
+        public override string Text
         {
             get
             {
@@ -286,7 +326,6 @@ namespace Acc_Trede_winForms.Models
                 SetPlaceholder();
             }
         }
-
         #endregion
 
         #region -> Overridden methods
@@ -294,9 +333,10 @@ namespace Acc_Trede_winForms.Models
         protected override void OnGotFocus(EventArgs e)
         {
             base.OnGotFocus(e);
-            textBox1.Focus();
+            this.textBox1.Focus();
             SelectEnd(); // Unselects text and moves cursor to end
         }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -446,6 +486,53 @@ namespace Acc_Trede_winForms.Models
         }
         #endregion
 
+        #region -> Public Methods (NEW: Operations, Focus & Cleanup)
+
+        // تنظيف ومسح المحتوى وتطبيق الـ Placeholder
+        public void Clear()
+        {
+            this.Text = string.Empty;
+        }
+
+        // تحديد كافة النصوص داخل الحقل
+        public void SelectAll()
+        {
+            if (!isPlaceholder && textBox1 != null)
+            {
+                textBox1.SelectAll();
+            }
+        }
+
+        // تحديد جزء معين من النص برمجياً
+        public void Select(int start, int length)
+        {
+            if (!isPlaceholder && textBox1 != null)
+            {
+                textBox1.Select(start, length);
+            }
+        }
+
+        // إدراج نص في نهاية الحقل مباشرة
+        public void AppendText(string text)
+        {
+            if (isPlaceholder)
+            {
+                this.Text = text;
+            }
+            else
+            {
+                textBox1.AppendText(text);
+            }
+        }
+
+        // عمليات الحافظة (Clipboard)
+        public void Copy() => textBox1.Copy();
+        public void Cut() => textBox1.Cut();
+        public void Paste() => textBox1.Paste();
+        public void Undo() => textBox1.Undo();
+
+        #endregion
+
         #region -> Private methods
         private void TextBox1_Enter(object sender, EventArgs e)
         {
@@ -549,13 +636,30 @@ namespace Acc_Trede_winForms.Models
                 this.Region = new Region(this.ClientRectangle);
             }
         }
+
+        // NEW: Change cursor to Hand when hovering over icons
+        private void TextBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            Point loc = this.PointToClient(Cursor.Position);
+
+            bool isOverLeftIcon = leftIcon != null && new Rectangle(
+                this.Padding.Left - iconSize.Width - 4,
+                (this.Height - iconSize.Height) / 2,
+                iconSize.Width, iconSize.Height).Contains(loc);
+
+            bool isOverRightIcon = rightIcon != null && new Rectangle(
+                this.Width - this.Padding.Right + 4,
+                (this.Height - iconSize.Height) / 2,
+                iconSize.Width, iconSize.Height).Contains(loc);
+
+            this.Cursor = (isOverLeftIcon || isOverRightIcon) ? Cursors.Hand : Cursors.Default;
+        }
         #endregion
 
         #region -> TextBox events
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if (_TextChanged != null)
-                _TextChanged.Invoke(sender, e);
+            _TextChanged?.Invoke(this, e);
         }
 
         private void textBox1_Click(object sender, EventArgs e)
@@ -592,6 +696,5 @@ namespace Acc_Trede_winForms.Models
             SetPlaceholder();
         }
         #endregion
-
     }
 }

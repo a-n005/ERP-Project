@@ -8,17 +8,18 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-
 
 namespace Acc_Trede_winForms.Login
 {
     public partial class ucLogin : UserControl
     {
         public event EventHandler OnLoginSuccess;
+
         public ucLogin()
         {
             InitializeComponent();
@@ -28,7 +29,7 @@ namespace Acc_Trede_winForms.Login
         {
             if (!this.ValidateChildren()) return;
 
-            Result r = GlobalUser.Login(txtUsername.Texts.Trim(), txtPassword.Texts.Trim(), cbRememberMe.Checked);
+            Result r = GlobalUser.Login(txtUsername.Text.Trim(), txtPassword.Text.Trim(), cbRememberMe.Checked);
             if (r.IsFailure)
                 CMsgB.Show("خطا", r.Error, false);
             else
@@ -39,43 +40,57 @@ namespace Acc_Trede_winForms.Login
 
         private void ucLogin_Load(object sender, EventArgs e)
         {
-            if (this.ParentForm != null)
+            ResetFocus();
+            cbRememberMe.KeyPress += (s, ev) =>
             {
-                this.ParentForm.AcceptButton = cBtn1;
-            }
+                if (ev.KeyChar == (char)Keys.Enter)
+                    cbRememberMe.Checked = !cbRememberMe.Checked;
+            };
 
             txtUsername.Validating += (s, ev) =>
             {
-                if (string.IsNullOrWhiteSpace(txtUsername.Texts))
+                if (string.IsNullOrWhiteSpace(txtUsername.Text))
                 {
                     errorProvider1.SetError(txtUsername, $"خطا: يجب ادخال اسم المستخدم.");
                 }
                 else
                     errorProvider1.SetError(txtUsername, "");
             };
+
             txtPassword.Validating += (s, ev) =>
             {
-                if (string.IsNullOrWhiteSpace(txtPassword.Texts))
+                if (string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
                     errorProvider1.SetError(txtPassword, $"خطا: يجب ادخال كلمة المرور.");
                 }
                 else
                     errorProvider1.SetError(txtPassword, "");
             };
+
             var (username, pass, remember) = Helper.Read();
-            txtUsername.Texts = username.Trim();
-            txtPassword.Texts = pass.Trim();
+            txtUsername.Text = username.Trim();
+            txtPassword.Text = pass.Trim();
             cbRememberMe.Checked = remember;
+            if( cbRememberMe.Checked ) cBtn1.Focus();
         }
-        protected override bool ProcessDialogKey(Keys keyData)
+
+        public void ResetFocus()
+        {
+            txtUsername.Focus();
+            txtUsername.SelectAll();
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == Keys.Enter)
             {
-                cBtn1.PerformClick();
-                return true; // Marks the key as handled and suppresses the Windows system "ding" sound
+                // التأكد من أن التركيز الحالي هو إما زر الدخول أو أحد صناديق الإدخال داخل هذه الواجهة
+                if (cBtn1.Focused || txtUsername.Focused || txtPassword.Focused || cbRememberMe.Focused)
+                {
+                    cBtn1.PerformClick();
+                    return true; // منع انتقال الحدث للنموذج الرئيسي أو الشاشات الأخرى
+                }
             }
-            return base.ProcessDialogKey(keyData);
+            return base.ProcessCmdKey(ref msg, keyData);
         }
-
     }
 }

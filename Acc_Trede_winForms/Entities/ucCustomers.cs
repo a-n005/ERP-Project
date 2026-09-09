@@ -1,13 +1,19 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms.Models.CDGV;
 using Acc_Trede_winForms.Models.CMessageBox;
+using Acc_Trede_winForms.Models.cPanel;
+using Acc_Trede_winForms.Models.CScrollB;
+using Acc_Trede_winForms.Properties;
 using Acc_Trede_winForms_Buisness.Entities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
@@ -18,12 +24,19 @@ namespace Acc_Trede_winForms.Entities
 {
     public partial class ucCustomers : UserControl
     {
+        #region Constructors & Fields
+        List<clsCustomers_BLL> _originalCustomersList = new List<clsCustomers_BLL>();
+        clsCustomers_BLL _customer;
+        private bool isActive = false;
+        public event Action<string, int> ActionButtonClick;
         public ucCustomers()
         {
             InitializeComponent();
             this.Resize += (s, e) => CenterAddPanel();
         }
-        private void ucCustomers_Load(object sender, EventArgs e)
+        #endregion
+
+        private void ucCustomers_Load(object sender, EventArgs e)
         {
             pAddInLoad();
             pTopInLoad();
@@ -31,70 +44,158 @@ namespace Acc_Trede_winForms.Entities
             dgvLoad();
 
         }
-        #region Panel Add
-        private void pAddInLoad()
+
+        #region Panel Add
+        private void pAddInLoad()
         {
-            pAdd.Paint += (_, e) => p_Paint(pAdd, e, borderRadius:10,b: true, t: true);
+            pAdd.ApplyBorder(borderRadius: 10, b: true, t: true);
+
+            txtCustomerName.Validating += (s, ev) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtCustomerName.Text.Trim()))
+                    errorProvider1.SetError(txtCustomerName, $"خطأ: يجب ادخال اسم المستخدم.");
+                else
+                    errorProvider1.SetError(txtCustomerName, "");
+            };
+            txtPhone.KeyPress += (s, ev) =>
+            {
+                if (!char.IsDigit(ev.KeyChar) && !char.IsControl(ev.KeyChar))
+                {
+                    errorProvider1.SetError(txtPhone, "خطأ: يجب إدخال أرقام فقط.");
+                    ev.Handled = true;
+                }
+                else
+                    errorProvider1.SetError(txtPhone, "");
+            };
+            cbActive.KeyPress += (s, ev) =>
+            {
+                if (ev.KeyChar == (char)Keys.Enter)
+                    cbActive.Checked = !cbActive.Checked;
+            };
+            pAdd.EscapePressed += (s, ev) => btnX.PerformClick();
         }
         private void btnAddCustomersClick(object s, EventArgs e)
         {
-            // after check if add make pAdd visible false
-            pAdd.Visible = false;
-        }
-        private void CenterAddPanel()
-        {
-            if (pAdd != null && pAdd.Parent != null)
-            {
-                int x = (pAdd.Parent.ClientSize.Width - pAdd.Width) / 2;
-                int y = (pAdd.Parent.ClientSize.Height - pAdd.Height) / 2;
+            if (!this.ValidateChildren()) return;
 
-                pAdd.Location = new Point(Math.Max(0, x), Math.Max(0, y));
+            if (pAdd.Tag.ToString() == "add")
+            {
+                _customer.CustomerName = txtCustomerName.Text.Trim();
+                _customer.Phone = txtPhone.Text.Trim() == "" ? null : txtPhone.Text.Trim();
+                _customer.TaxNumber = txtTaxNumber.Text.Trim() == "" ? null : txtTaxNumber.Text.Trim();
+                var r = _customer.Save();
+
+                if (r.IsFailure)
+                { CMsgB.Show("خطأ", r.Error, showCancelButton: false); return; }
+                CMsgB.Show("ناجح", "تم إضافة العميل بنجاح.", 0);
             }
+            else // for update 
+            {
+                _customer.IsActive = cbActive.Checked;
+                _customer.CustomerName = txtCustomerName.Text.Trim();
+                _customer.Phone = txtPhone.Text.Trim();
+                _customer.TaxNumber = txtTaxNumber.Text.Trim();
+                var r = _customer.Save();
+
+                if (r.IsFailure)
+                { CMsgB.Show("خطأ", r.Error, showCancelButton: false); return; }
+                CMsgB.Show("ناجح", "تم تحديث العميل بنجاح.", 0);
+            }
+            refresh();
+            ResetAndCloseAddPanel();
         }
-        #endregion
-        #region Panel Top
-        private void pTopInLoad()
+        private void btnX_Click(object sender, EventArgs e)
         {
-            pTop.Paint += (s, e) => p_Paint(pTop, e, null, 2, false, true);
+            ResetAndCloseAddPanel();
+        }
+        #endregion
+
+        #region Panel Top
+        private void pTopInLoad()
+        {
+            pTop.Paint += (s, e) => pAdd.p_Paint(pTop, e, null, 2, false, true);
+            cToggleSwitch1.CheckedChanged += (s, e) => { isActive = !isActive; ApplyFilter(); };
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+            ApplyFilter();
         }
         private void btnAddClick(object s, EventArgs e)
         {
             if (pAdd.Visible)
                 return;
+
+            _customer = new clsCustomers_BLL();
+            lblTitel.Text = "إضافة عميل";
+            btnAddCustomers.Text = "إضافة العميل";
+            pAdd.Tag = "add";
+
+            ResetAndCloseAddPanel();
+
             pAdd.Visible = true;
             pAdd.BringToFront();
+
+            this.BeginInvoke((Action)(() => txtCustomerName.Focus()));
         }
-        #endregion
-        #region Panel Bottom
-        private void pBottomInLoad()
+        private void btnRefresh_Click(object sender, EventArgs e)
         {
-            pBottom.Paint += (s, e) => p_Paint(pBottom, e,t:true);
+            txtSearch.Clear();
+            refresh();
         }
-        #endregion
-        #region Data Grid View 
-        private void dgvLoad()
+        #endregion
+
+        #region Panel Bottom
+
+        private void pBottomInLoad()
         {
+            pBottom.Paint += (s, e) => pAdd.p_Paint(pBottom, e, t: true);
+        }
+
+        private void refreshRecords() => lblRecords.Text = dgvCustomers.Count > 0 ? $"العملاء: {dgvCustomers.Count}" : "العملاء: 0";
+
+        #endregion
+
+        #region Data Grid View 
+
+        private void dgvLoad()
+        {
+
+            dgvCustomers.AddActionButton("Edit", "", icon: Resources.Edit_Pencil, isLeftmost: true);
+            dgvCustomers.AddActionButton("Delete", "", icon: Resources.Delete, isLeftmost: true);
             dgvCustomers.Dock = DockStyle.Fill;
             dgvCustomers.UpdateScrollBar();
 
+            dgvCustomers.ActionButtonClick += (s, e) =>
+            {
+                switch (s)
+                {
+                    case "Edit":
+                        _Update(Find());
+                        //dgvCustomers.Grid.ClearSelection();
+                        //dgvCustomers.Grid.CurrentCell = null;
+                        break;
+                    case "Delete": _Delete(Find()); break;
+                    default:
+                        break;
+                }
+            };
+
+            refresh();
+        }
+
+        private void refresh()
+        {
             Result<List<clsCustomers_BLL>> r = clsCustomers_BLL.GetAllCustomers();
             if (r.IsFailure)
             {
                 CMsgB.Show("", r.Error, 0);
                 return;
             }
-            dgvCustomers.Grid.DataSource = r.Value;
-
-            dgvCustomers.SortDGV("CustomerID");
-
-            SetDGVLayout(dgvCustomers.Grid);
-            refresh();
+            _originalCustomersList = r.Value.OrderBy(c => c.CustomerID).ToList();
+            ApplyFilter();
         }
-        private void refresh()
-        {
-            int c = dgvCustomers.Grid.Rows.Count;
-            lblRecords.Text = c > 0 ? $"العملاء: {c}" : "العملاء: 0";
-        }
+
         private void ToHideColumns(DataGridView g, params string[] colsToHide)
         {
             foreach (string colName in colsToHide)
@@ -103,12 +204,11 @@ namespace Acc_Trede_winForms.Entities
                     g.Columns[colName].Visible = false;
             }
         }
+
         private void SetDGVLayout(DataGridView g)
         {
-            ToHideColumns(g, "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy");
+            ToHideColumns(g, "CreatedAt", "UpdatedAt", "CreatedBy", "UpdatedBy", "LastUpdate");
 
-
-            // 3. Set proper Arabic headers and relative column widths
             if (g.Columns.Contains("CustomerID"))
             {
                 g.Columns["CustomerID"].HeaderText = "م";
@@ -138,124 +238,125 @@ namespace Acc_Trede_winForms.Entities
                 g.Columns["IsActive"].HeaderText = "نشط";
                 g.Columns["IsActive"].FillWeight = 40;
             }
+
+            dgvCustomers.FixActionButtonsPosition();
         }
+
         #endregion
 
-        #region Private Methods
-        private void p_Paint(Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2,
-                       bool? t = null, bool? b = null, bool? l = null, bool? r = null, int borderRadius = 0, bool? all = null)
+        #region Helpers
+
+        private void _Update(Result<clsCustomers_BLL> r)
         {
-            Color lineColor = color ?? Color.FromArgb(108, 92, 231);
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            if (pAdd.Visible)
+                return;
 
-            int width = panel.ClientSize.Width;
-            int height = panel.ClientSize.Height;
+            ClearErrorState();
+            if (r.IsFailure)
+            { CMsgB.Show("", r.Error); return; }
+            _customer = r.Value;
 
-            if (width <= 0 || height <= 0) return;
+            txtPhone.Text = _customer.Phone;
+            txtTaxNumber.Text = _customer.TaxNumber;
+            txtCustomerName.Text = _customer.CustomerName;
+            cbActive.Checked = _customer.IsActive;
 
-            // 1. قص حواف البانل الخارجية
-            if (borderRadius > 0)
+            lblTitel.Text = "تحديث عميل";
+            btnAddCustomers.Text = "تحديث العميل";
+            pAdd.Tag = "update";
+
+            cbActive.Visible = true;
+            pAdd.Visible = true;
+            pAdd.BringToFront();
+            txtCustomerName.Focus();
+        }
+
+        private Result<clsCustomers_BLL> Find()
+        {
+            return clsCustomers_BLL.Find(Convert.ToInt32(dgvCustomers.Grid.CurrentRow.Cells["CustomerID"].Value));
+        }
+
+        private void _Delete(Result<clsCustomers_BLL> r)
+        {
+            string s = dgvCustomers.Grid.CurrentRow.Cells["CustomerName"].Value.ToString();
+            if (CMsgB.Show("تنبية!!!", $"هل انت متأكد من حذف العميل \u200F{{ {s} }}\u200F ؟", isYN: true) == DialogResult.OK)
             {
-                Rectangle fullRect = new Rectangle(0, 0, width, height);
-                using (var clipPath = GetRoundedPath(fullRect, borderRadius))
+                if (dgvCustomers.Grid.CurrentRow == null) return;
+
+                if (r.IsFailure)
                 {
-                    panel.Region = new Region(clipPath);
+                    CMsgB.Show("خطأ", r.Error);
+                    return;
                 }
-            }
-            else if (panel.Region != null)
-            {
-                panel.Region.Dispose();
-                panel.Region = null;
-            }
 
-            if (all == true)
-                t = r = b = l = true;
+                var deleteResult = r.Value.Delete();
 
-            bool drawT = t ?? (b == null && l == null && r == null);
-            bool drawB = b ?? (t == null && l == null && r == null);
-            bool drawL = l ?? (t == null && b == null && r == null);
-            bool drawR = r ?? (t == null && b == null && e == null);
-
-            using (Pen pen = new Pen(lineColor, lineThickness))
-            {
-                pen.Alignment = System.Drawing.Drawing2D.PenAlignment.Center;
-                int pad = lineThickness / 2;
-                Rectangle rect = new Rectangle(pad, pad, width - lineThickness, height - lineThickness);
-
-                if (borderRadius > 0)
+                if (deleteResult.IsFailure)
                 {
-                    // إذا كانت جميع الحدود مفعلة، نرسم الإطار كاملاً بشكل مثالي
-                    if (drawT && drawB && drawL && drawR)
-                    {
-                        using (var path = GetRoundedPath(rect, borderRadius))
-                        {
-                            e.Graphics.DrawPath(pen, path);
-                        }
-                    }
-                    else
-                    {
-                        // ضبط منطقة القص بدقة لمنع نزول الخط للأسفل عند اختيار (Top) فقط
-                        var oldClip = e.Graphics.Clip;
-                        using (Region drawRegion = new Region())
-                        {
-                            drawRegion.MakeEmpty();
-
-                            // ارتفاع/عرض المنطقة المسموح بالرسم فيها يساوي تماماً نصف قطر الانحناء
-                            int clipBound = borderRadius + pad;
-
-                            if (drawT) drawRegion.Union(new Rectangle(0, 0, width, clipBound));
-                            if (drawB) drawRegion.Union(new Rectangle(0, height - clipBound, width, clipBound));
-                            if (drawL) drawRegion.Union(new Rectangle(0, 0, clipBound, height));
-                            if (drawR) drawRegion.Union(new Rectangle(width - clipBound, 0, clipBound, height));
-
-                            e.Graphics.Clip = drawRegion;
-
-                            using (var path = GetRoundedPath(rect, borderRadius))
-                            {
-                                e.Graphics.DrawPath(pen, path);
-                            }
-
-                            e.Graphics.Clip = oldClip;
-                        }
-                    }
+                    CMsgB.Show("خطأ", deleteResult.Error);
+                    return;
                 }
-                else
-                {
-                    if (drawT && drawB && drawL && drawR)
-                    {
-                        e.Graphics.DrawRectangle(pen, 0, 0, width - 1, height - 1);
-                    }
-                    else
-                    {
-                        if (drawT) e.Graphics.DrawLine(pen, 0, 0, width, 0);
-                        if (drawR) e.Graphics.DrawLine(pen, width - 1, 0, width - 1, height);
-                        if (drawB) e.Graphics.DrawLine(pen, 0, height - 1, width, height - 1);
-                        if (drawL) e.Graphics.DrawLine(pen, 0, 0, 0, height);
-                    }
-                }
+
+                CMsgB.Show("ناجح", $"تم حذف العميل \u200F{{ {s} }}\u200F بنجاح", 0);
+                btnRefresh.PerformClick();
             }
         }
-        private System.Drawing.Drawing2D.GraphicsPath GetRoundedPath(Rectangle rect, int radius)
+
+        private void ApplyFilter()
         {
-            System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath();
-            int diameter = radius * 2;
+            string searchText = txtSearch.Text.Trim().ToLower();
 
-            if (diameter > rect.Width) diameter = rect.Width;
-            if (diameter > rect.Height) diameter = rect.Height;
+            var filteredList = _originalCustomersList.AsEnumerable();
 
-            Rectangle arc = new Rectangle(rect.X, rect.Y, diameter, diameter);
+            filteredList = this.isActive ? filteredList.Where(x => x.IsActive) : filteredList;
 
-            path.AddArc(arc, 180, 90); // Top-Left
-            arc.X = rect.Right - diameter;
-            path.AddArc(arc, 270, 90); // Top-Right
-            arc.Y = rect.Bottom - diameter;
-            path.AddArc(arc, 0, 90);   // Bottom-Right
-            arc.X = rect.Left;
-            path.AddArc(arc, 90, 90);  // Bottom-Left
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                filteredList = filteredList.Where(c =>
+                  (!string.IsNullOrEmpty(c.CustomerName) && c.CustomerName.ToLower().Contains(searchText)) ||
+                  (!string.IsNullOrEmpty(c.Phone) && c.Phone.Contains(searchText)) ||
+                  (!string.IsNullOrEmpty(c.TaxNumber) && c.TaxNumber.Contains(searchText))
+                );
+            }
 
-            path.CloseFigure();
-            return path;
+            var resultList = filteredList.OrderBy(c => c.CustomerID).ToList();
+
+            dgvCustomers.Grid.DataSource = resultList;
+            SetDGVLayout(dgvCustomers.Grid);
+            refreshRecords();
+            dgvCustomers.UpdateScrollBar();
         }
+
+        private void ClearErrorState()
+        {
+            errorProvider1.SetError(txtCustomerName, "");
+            errorProvider1.SetError(txtPhone, "");
+        }
+
+        private void ResetAndCloseAddPanel()
+        {
+            ClearErrorState();
+
+            txtCustomerName.Clear();
+            txtPhone.Clear();
+            txtTaxNumber.Clear();
+
+            pAdd.Visible = false;
+            cbActive.Visible = false;
+        }
+
+        private void CenterAddPanel()
+        {
+            if (pAdd != null && pAdd.Parent != null)
+            {
+                int x = (pAdd.Parent.ClientSize.Width - pAdd.Width) / 2;
+                int y = (pAdd.Parent.ClientSize.Height - pAdd.Height) / 2;
+
+                pAdd.Location = new Point(Math.Max(0, x), Math.Max(0, y));
+            }
+        }
+
         #endregion
+
     }
 }

@@ -7,9 +7,9 @@ namespace Acc_Trede_winForms.Models.CMessageBox
 {
     public static class CMsgB
     {
-        public static DialogResult Show(string title, string message, bool showCancelButton = true)
+        public static DialogResult Show(string title, string message, bool showCancelButton = true,bool isYN=false)
         {
-            var msgBox = new CMsgBox(title, message, showCancelButton);
+            var msgBox = new CMsgBox(title, message, showCancelButton,isYN:isYN);
             msgBox.SetFore(Color.FromArgb(64, 64, 64), Color.FromArgb(108, 92, 231), Color.FromArgb(108, 92, 231));
             msgBox.SetPanelColor(null, null, null, true);
             msgBox.SetButton(Color.FromArgb(141, 129, 240), null, 10, 2);

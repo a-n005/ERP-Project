@@ -259,7 +259,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
 
         #endregion
 
-        public CMsgBox(string title, string message, bool showCancel = true, bool showOk = true)
+        public CMsgBox(string title, string message, bool showCancel = true, bool showOk = true,bool isYN=false)
         {
             InitializeComponent();
 
@@ -270,6 +270,11 @@ namespace Acc_Trede_winForms.Models.CMessageBox
             if (!showCancel)
             {
                 btnOk.Location = new Point((bottomPanel.Width - btnOk.Width) / 2, (bottomPanel.Height - btnOk.Height) / 2);
+            }
+            if (isYN)
+            {
+                btnOk.Text = "Yes";
+                btnCancel.Text = "Cancel";
             }
         }
         public void PerformClik()

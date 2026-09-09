@@ -50,6 +50,7 @@ namespace Acc_Trede_winForms_Buisness.Entities
             this.CreatedBy = createdBy;
             this.UpdatedBy = updatedBy;
             this.LastUpdate = updatedAt;
+            this._Mode= _enMode.Update;
         }
         #endregion
 
@@ -65,7 +66,7 @@ namespace Acc_Trede_winForms_Buisness.Entities
             this._Mode = _enMode.Update;
             return Result.Success();
         }
-        private Result _Update() => clsCustomers_DAL.UpdateCustomer(this.CustomerID, this.CustomerName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID);
+        private Result _Update() => clsCustomers_DAL.UpdateCustomer(this.CustomerID, this.CustomerName, this.Phone, this.TaxNumber, GlobalUser.CurrentUser.UserID,this.IsActive);
         #endregion
 
         #region Public Method

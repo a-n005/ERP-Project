@@ -1,6 +1,8 @@
 ﻿using Acc_Trade_Core;
 using Acc_Trede_winForms.Entities;
+using Acc_Trede_winForms.Models;
 using Acc_Trede_winForms.Models.CButton;
+using Acc_Trede_winForms.Models.cPanel;
 using Acc_Trede_winForms.Properties;
 using Acc_Trede_winForms_Buisness.Global;
 using Acc_Trede_winForms_Buisness.Validation;
@@ -11,6 +13,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,12 +22,14 @@ namespace Acc_Trede_winForms.Login
 {
     public partial class frmLogin : Form
     {
-        
+        #region Constructors & Properties
         public frmLogin()
         {
             InitializeComponent();
         }
-        public  bool isHide {  get=> pList.Size.Width==193? true:false; }
+        public bool isHide { get => pList.Size.Width == 193 ? true : false; }
+        #endregion
+
         private void Login_Load(object sender, EventArgs e)
         {
             p1InLoad();
@@ -34,24 +39,29 @@ namespace Acc_Trede_winForms.Login
 
 
         }
+
         #region Work Screen Panel
         private void ShowLoginControl()
         {
             pScreen.Size = new Size(800, 427);
-            // Clear panel & initialize control
+
+            foreach (Control ctrl in pScreen.Controls)
+                ctrl.Dispose();
+
             pScreen.Controls.Clear();
+
             var _ucLogin = new ucLogin();
 
-            // Stretch user control to fill the container panel
             _ucLogin.Dock = DockStyle.Fill;
 
-            // Subscribe to the successful login event
             _ucLogin.OnLoginSuccess += UcLogin_OnLoginSuccess;
 
             pScreen.Controls.Add(_ucLogin);
 
             this.ActiveControl = _ucLogin;
-            _ucLogin.Focus();
+
+            this.BeginInvoke(new Action(() => { _ucLogin.ResetFocus(); }));
+
         }
         private void UcLogin_OnLoginSuccess(object sender, EventArgs e)
         {
@@ -70,6 +80,7 @@ namespace Acc_Trede_winForms.Login
             // make perform click on sales
         }
         #endregion
+
         #region Top Panel
         private void p1InLoad()
         {
@@ -103,15 +114,6 @@ namespace Acc_Trede_winForms.Login
                 SendMessage(this.Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
         }
-        // Native Windows API calls for window dragging
-        [DllImport("user32.dll")]
-        public static extern bool ReleaseCapture();
-
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-        private const int WM_NCLBUTTONDOWN = 0xA1;
-        private const int HT_CAPTION = 0x2;
         private void btnMaximized_Click(object sender, EventArgs e)
         {
             if (this.WindowState == FormWindowState.Normal)
@@ -124,19 +126,20 @@ namespace Acc_Trede_winForms.Login
                 this.WindowState = FormWindowState.Normal;
                 btnMaximized.Icon = Resources.Maximize_Button;
             }
+            pScreen.Focus();
         }
-
         private void btnMinimized_Click(object sender, EventArgs e)
         {
             this.WindowState = FormWindowState.Minimized;
+            pScreen.Focus();
         }
         private void cBtn1_Click(object sender, EventArgs e)
         {
             btnLogout.PerformClick();
             Application.Exit();
         }
-
         #endregion
+
         #region List Panel
         private void pListInLoad()
         {
@@ -144,7 +147,6 @@ namespace Acc_Trede_winForms.Login
         }
         private void btnCustomers_Click(object sender, EventArgs e)
         {
-            if (pScreen.Tag?.ToString() != "customers")
                 ShowScreen(new ucCustomers(), "customers");
         }
         private void btnHide_Click(object sender, EventArgs e)
@@ -173,9 +175,32 @@ namespace Acc_Trede_winForms.Login
                     if (item is CBtn btn && btn.Tag != null)
                         btn.Text = btn.Tag.ToString();
             }
+            pScreen.Focus();
         }
-
         #endregion
+
+        #region Helpers
+
+        //private bool FocusControlRecursive(Control container, string controlName)
+        //{
+        //    foreach (Control ctrl in container.Controls)
+        //    {
+        //        if (ctrl.Name == controlName)
+        //        {
+        //            ctrl.Focus();
+        //            if (ctrl is TextBox txt) txt.SelectAll();
+        //            return true;
+        //        }
+
+        //        if (ctrl.HasChildren)
+        //        {
+        //            if (FocusControlRecursive(ctrl, controlName))
+        //                return true;
+        //        }
+        //    }
+        //    return false;
+        //}
+
         private void p_Paint(Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2, bool t = false, bool b = false, bool l = false, bool r = false)
         {
             Color lineColor = color ?? Color.FromArgb(108, 92, 231);
@@ -202,23 +227,60 @@ namespace Acc_Trede_winForms.Login
 
             }
         }
-
         private void ShowScreen(UserControl newScreen, string tag)
         {
-            // Clear current control from the display panel
+            if (pScreen.Tag?.ToString() == tag)
+            {
+                pScreen.Focus();
+                return;
+            }
+            // To discharge or dispose memory, use it when you don't want to save the screen in the background
+            //foreach(Control ctrl in pScreen.Controls) 
+            //    ctrl.Dispose();
+
             pScreen.Controls.Clear();
             pScreen.Tag = tag;
-            // Configure the new UserControl to stretch across the panel
             newScreen.Dock = DockStyle.Fill;
 
-            // Add and bring to front
             pScreen.Controls.Add(newScreen);
             newScreen.BringToFront();
 
             this.ActiveControl = newScreen;
-            newScreen.Focus();
+
+            this.BeginInvoke(new Action(() =>
+            {
+
+                Control firstFocusable = GetFirstFocusableControl(newScreen);
+
+                if (firstFocusable != null)
+                {
+                    firstFocusable.Focus();
+                }
+                else
+                {
+                    newScreen.Focus();
+                }
+            }));
         }
 
+        private Control GetFirstFocusableControl(Control parent)
+        {
+            Control ctrl = parent.GetNextControl(parent, true);
 
+            while (ctrl != null && (!ctrl.Visible || !ctrl.CanFocus || !ctrl.TabStop))
+            {
+                ctrl = parent.GetNextControl(ctrl, true);
+            }
+
+            return ctrl;
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        private const int WM_NCLBUTTONDOWN = 0xA1;
+        private const int HT_CAPTION = 0x2;
+        #endregion
     }
 }

@@ -12,7 +12,7 @@ namespace Acc_Trede_winForms_Buisness.Validation.Entitis
     {
         public clsCustomersValidator()
         { 
-            RuleFor(x => x.CustomerName).NotEmpty().NotNull().WithMessage("يجب اضافه اسم العميل.");
+            RuleFor(x => x.CustomerName).NotEmpty().WithMessage("يجب اضافه اسم العميل.");
         }
     }
 }

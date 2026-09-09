@@ -38,7 +38,14 @@ namespace Acc_Trede_winForms.Models.CButton
         private ContentAlignment iconAlignment = ContentAlignment.MiddleLeft;
 
         private BorderSide selectedBorderSide = BorderSide.All;
+
+        // Focus Custom Fields (تم تعديل اللون الافتراضي للبنفسجي)
+        private Color focusColor = Color.FromArgb(108, 92, 231);
+        private int focusBorderSize = 1;
+        private bool showFocusBorder = true;
+
         #endregion
+
         #region Properties
 
         [Category("Custom Properties")]
@@ -147,7 +154,33 @@ namespace Acc_Trede_winForms.Models.CButton
             get { return this.ForeColor; }
             set { this.ForeColor = value; }
         }
+
+        [Category("Custom Properties - Focus")]
+        [Description("Color of the inner focus border when control is focused.")]
+        public Color FocusColor
+        {
+            get => focusColor;
+            set { focusColor = value; this.Invalidate(); }
+        }
+
+        [Category("Custom Properties - Focus")]
+        [Description("Border thickness of the focus rectangle.")]
+        public int FocusBorderSize
+        {
+            get => focusBorderSize;
+            set { focusBorderSize = value; this.Invalidate(); }
+        }
+
+        [Category("Custom Properties - Focus")]
+        [Description("Enable/Disable focus visual indicator when focused via Tab or Focus().")]
+        public bool ShowFocusBorder
+        {
+            get => showFocusBorder;
+            set { showFocusBorder = value; this.Invalidate(); }
+        }
+
         #endregion
+
         // Constructor
         public CBtn()
         {
@@ -157,23 +190,48 @@ namespace Acc_Trede_winForms.Models.CButton
             this.BackColor = defaultBackColor;
             this.ForeColor = Color.White;
             this.Resize += new EventHandler(Button_Resize);
-
             this.SetStyle(ControlStyles.Selectable, true);
         }
+
         #region override Methods
+        protected override void OnClick(EventArgs e)
+        {
+            base.OnClick(e);
+
+            // نقل التركيز إلى الحاوية الأبوية لإلغاء التحديد عن الزر
+            if (this.Parent != null)
+            {
+                this.Parent.Focus();
+            }
+        }
         protected override bool ShowFocusCues => false;
+
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);
             isHovered = true;
             this.BackColor = onHoverColor;
         }
+
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
             isHovered = false;
             this.BackColor = defaultBackColor;
         }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            this.Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            this.Invalidate();
+        }
+
         protected override void OnPaint(PaintEventArgs pevent)
         {
             base.OnPaint(pevent);
@@ -249,7 +307,39 @@ namespace Acc_Trede_winForms.Models.CButton
                 Point iconLocation = GetIconLocation();
                 pevent.Graphics.DrawImage(icon, new Rectangle(iconLocation, iconSize));
             }
+
+            // Draw Custom Focus Indicator (البنفسجي)
+            if (this.Focused && showFocusBorder && focusBorderSize > 0)
+            {
+                pevent.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                int margin = borderSize + 2;
+                Rectangle rectFocus = new Rectangle(
+                    margin,
+                    margin,
+                    Math.Max(1, this.Width - (margin * 2) - 1),
+                    Math.Max(1, this.Height - (margin * 2) - 1)
+                );
+
+                using (Pen penFocus = new Pen(focusColor, focusBorderSize))
+                {
+                    penFocus.DashStyle = DashStyle.DashDotDot;
+
+                    if (borderRadius > 2 && SelectedBorderSide == BorderSide.All)
+                    {
+                        int focusRadius = Math.Max(1, borderRadius - margin);
+                        using (GraphicsPath pathFocus = GetFigurePath(rectFocus, focusRadius))
+                        {
+                            pevent.Graphics.DrawPath(penFocus, pathFocus);
+                        }
+                    }
+                    else
+                    {
+                        pevent.Graphics.DrawRectangle(penFocus, rectFocus);
+                    }
+                }
+            }
         }
+
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
@@ -259,11 +349,14 @@ namespace Acc_Trede_winForms.Models.CButton
             }
         }
         #endregion
+
         #region private Methods
+
         private void Container_BackColorChanged(object sender, EventArgs e)
         {
             this.Invalidate();
         }
+
         private Point GetIconLocation()
         {
             int x = 10;
@@ -284,11 +377,13 @@ namespace Acc_Trede_winForms.Models.CButton
 
             return new Point(x, y);
         }
+
         private void Button_Resize(object sender, EventArgs e)
         {
             if (borderRadius > this.Height)
                 borderRadius = this.Height;
         }
+
         private GraphicsPath GetFigurePath(Rectangle rect, int radius)
         {
             GraphicsPath path = new GraphicsPath();
