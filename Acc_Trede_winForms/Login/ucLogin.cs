@@ -74,6 +74,7 @@ namespace Acc_Trede_winForms.Login
             if( cbRememberMe.Checked ) cBtn1.Focus();
         }
 
+        #region Helpers
         public void ResetFocus()
         {
             txtUsername.Focus();
@@ -92,5 +93,6 @@ namespace Acc_Trede_winForms.Login
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
+        #endregion
     }
 }

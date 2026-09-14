@@ -73,6 +73,16 @@ namespace Acc_Trede_winForms.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap add_cart {
+            get {
+                object obj = ResourceManager.GetObject("add cart", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap arrow_to_left {
             get {
                 object obj = ResourceManager.GetObject("arrow_to_left", resourceCulture);
@@ -96,6 +106,36 @@ namespace Acc_Trede_winForms.Properties {
         internal static System.Drawing.Bitmap Cancel {
             get {
                 object obj = ResourceManager.GetObject("Cancel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cashier_Machine {
+            get {
+                object obj = ResourceManager.GetObject("Cashier-Machine", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap cercle_cancel {
+            get {
+                object obj = ResourceManager.GetObject("cercle cancel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap cercle_wrning {
+            get {
+                object obj = ResourceManager.GetObject("cercle wrning", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -246,6 +286,16 @@ namespace Acc_Trede_winForms.Properties {
         internal static System.Drawing.Bitmap Restore_Down {
             get {
                 object obj = ResourceManager.GetObject("Restore Down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap return_cart {
+            get {
+                object obj = ResourceManager.GetObject("return_cart", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

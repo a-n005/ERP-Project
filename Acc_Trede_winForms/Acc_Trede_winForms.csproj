@@ -46,23 +46,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cashier\ucCashier.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Cashier\ucCashier.Designer.cs">
+      <DependentUpon>ucCashier.cs</DependentUpon>
+    </Compile>
     <Compile Include="Entities\ucCustomers.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Entities\ucCustomers.Designer.cs">
       <DependentUpon>ucCustomers.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form1.cs">
+    <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Login\frmLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Login\frmLogin.Designer.cs">
-      <DependentUpon>frmLogin.cs</DependentUpon>
+    <Compile Include="frmMain.Designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Login\ucLogin.cs">
       <SubType>UserControl</SubType>
@@ -89,11 +89,18 @@
     <Compile Include="Models\cscrollbar\CScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Models\cSuggestTextBox\cTxtSuggest.cs" />
+    <Compile Include="Models\cSuggestTextBox\cTxtSuggest.Designer.cs">
+      <DependentUpon>cTxtSuggest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\CTextBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Models\CTextBox.Designer.cs">
       <DependentUpon>CTextBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CToolTip\cToolTip.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Models\Extenstions.cs" />
     <Compile Include="Models\cPanel\cPanel.cs">
@@ -104,11 +111,20 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="test.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="test.Designer.cs">
+      <DependentUpon>test.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Cashier\ucCashier.resx">
+      <DependentUpon>ucCashier.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Entities\ucCustomers.resx">
       <DependentUpon>ucCustomers.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Login\frmLogin.resx">
-      <DependentUpon>frmLogin.cs</DependentUpon>
+    <EmbeddedResource Include="frmMain.resx">
+      <DependentUpon>frmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Login\ucLogin.resx">
       <DependentUpon>ucLogin.cs</DependentUpon>
@@ -120,6 +136,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="test.resx">
+      <DependentUpon>test.cs</DependentUpon>
     </EmbeddedResource>
     <None Include=".editorconfig" />
     <None Include="Properties\Settings.settings">
@@ -206,6 +225,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\eye Show.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\add cart.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cashier-Machine.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cercle cancel.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\return_cart.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cercle wrning.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

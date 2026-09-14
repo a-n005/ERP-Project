@@ -18,8 +18,8 @@ namespace Acc_Trede_winForms
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmLogin());
-            //Application.Run(new ucCustomers());
+            //Application.Run(new frmMain());
+            Application.Run(new test());
         }
     }
 }

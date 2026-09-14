@@ -30,7 +30,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
             Form mainForm = Application.OpenForms[0]; // Reference main active form
             if (mainForm != null)
             {
-                if (mainForm is frmLogin f)
+                if (mainForm is frmMain f)
                     if (f.isHide)
                         x = mainForm.Right - msgBox.Width - 197;  // 20px offset from right border
                     else

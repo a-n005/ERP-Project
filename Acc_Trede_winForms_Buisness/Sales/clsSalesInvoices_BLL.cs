@@ -140,7 +140,7 @@ namespace Acc_Trede_winForms_Buisness.Sales
             if (cart != null)
                 foreach (var item in cart)
                     dt.Rows.Add(
-                        item.Product?.ProductID ?? 0,
+                        item.ProductID ,
                         item.Quantity,
                         item.UnitPrice
                     );

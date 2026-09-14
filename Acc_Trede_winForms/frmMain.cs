@@ -18,12 +18,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Acc_Trede_winForms.Login
+namespace Acc_Trede_winForms
 {
-    public partial class frmLogin : Form
+    public partial class frmMain : Form
     {
         #region Constructors & Properties
-        public frmLogin()
+        public frmMain()
         {
             InitializeComponent();
         }
@@ -50,7 +50,7 @@ namespace Acc_Trede_winForms.Login
 
             pScreen.Controls.Clear();
 
-            var _ucLogin = new ucLogin();
+            var _ucLogin = new Acc_Trede_winForms.Login.ucLogin();
 
             _ucLogin.Dock = DockStyle.Fill;
 
@@ -147,7 +147,7 @@ namespace Acc_Trede_winForms.Login
         }
         private void btnCustomers_Click(object sender, EventArgs e)
         {
-                ShowScreen(new ucCustomers(), "customers");
+            ShowScreen(new ucCustomers(), "customers");
         }
         private void btnHide_Click(object sender, EventArgs e)
         {

@@ -49,6 +49,7 @@ namespace Acc_Trede_winForms.Entities
         private void pAddInLoad()
         {
             pAdd.ApplyBorder(borderRadius: 10, b: true, t: true);
+            pAdd.IstBackgroundDisabled=true;
 
             txtCustomerName.Validating += (s, ev) =>
             {
@@ -116,7 +117,6 @@ namespace Acc_Trede_winForms.Entities
             pTop.Paint += (s, e) => pAdd.p_Paint(pTop, e, null, 2, false, true);
             cToggleSwitch1.CheckedChanged += (s, e) => { isActive = !isActive; ApplyFilter(); };
         }
-
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
             ApplyFilter();

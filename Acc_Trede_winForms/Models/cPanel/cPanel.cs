@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 namespace Acc_Trede_winForms.Models.cPanel
@@ -16,6 +18,9 @@ namespace Acc_Trede_winForms.Models.cPanel
         //public bool EnableEscapeClose { get; set; } = false;
 
         [Category("Action")]
+        [Description("هل تعطل كل شي عندما تفتح")]
+        public bool IstBackgroundDisabled { get; set; } = false;
+        [Category("Action")]
         [Description("يعمل عند الضغط على مفتاح Escape داخل اللوحة")]
         public event EventHandler EscapePressed;
 
@@ -25,6 +30,7 @@ namespace Acc_Trede_winForms.Models.cPanel
             // منع إعادة الرسم المزدوج المشوه مع النص العربي
             this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
             this.VisibleChanged += CPanel_VisibleChanged;
+
         }
 
         protected override CreateParams CreateParams
@@ -48,7 +54,7 @@ namespace Acc_Trede_winForms.Models.cPanel
 
         private void CPanel_VisibleChanged(object sender, EventArgs e)
         {
-            if (IsDesignMode || this.Parent == null)
+            if (IsDesignMode || this.Parent == null || !IstBackgroundDisabled)
                 return;
 
             try
@@ -141,7 +147,7 @@ namespace Acc_Trede_winForms.Models.cPanel
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (this.Visible  && (keyData & Keys.KeyCode) == Keys.Escape)
+            if (this.Visible && (keyData & Keys.KeyCode) == Keys.Escape)
             {
                 OnEscapePressed();
                 return true;
@@ -155,12 +161,12 @@ namespace Acc_Trede_winForms.Models.cPanel
             EscapePressed?.Invoke(this, EventArgs.Empty);
         }
 
-        public void p_Paint( Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2,
+        public void p_Paint(Panel panel, PaintEventArgs e, Color? color = null, int lineThickness = 2,
                                bool? t = null, bool? b = null, bool? l = null, bool? r = null, int borderRadius = 0, bool? all = null)
         {
             if (panel == null || e == null) return;
 
-          
+
         }
 
         private System.Drawing.Drawing2D.GraphicsPath GetRoundedPath(Rectangle rect, int radius)
@@ -188,7 +194,7 @@ namespace Acc_Trede_winForms.Models.cPanel
     public static class PanelExtensions
     {
         public static void ApplyBorder(this Panel panel, bool? t = null, bool? b = null, bool? l = null, bool? r = null,
-            int borderRadius = 0, Color? color = null, int lineThickness = 2,bool? all=null)
+            int borderRadius = 0, Color? color = null, int lineThickness = 2, bool? all = null)
         {
             // إزالة الحدث القديم لمنع تكرار الرسم عند التحديث
             panel.Paint -= Panel_Paint;
@@ -223,10 +229,10 @@ namespace Acc_Trede_winForms.Models.cPanel
                 if (all == true)
                     t = r = b = l = true;
 
-                bool drawT = t ?? (b == null && l == null && r == null);
-                bool drawB = b ?? (t == null && l == null && r == null);
-                bool drawL = l ?? (t == null && b == null && r == null);
-                bool drawR = r ?? (t == null && b == null && e == null);
+                bool drawT = t ?? false;
+                bool drawB = b ?? false;
+                bool drawL = l ?? false;
+                bool drawR = r ?? false;
 
                 using (Pen pen = new Pen(lineColor, lineThickness))
                 {
@@ -285,7 +291,7 @@ namespace Acc_Trede_winForms.Models.cPanel
                 }
             }
 
-            panel.Invalidate(); 
+            panel.Invalidate();
         }
         private static System.Drawing.Drawing2D.GraphicsPath GetRoundedPath(Rectangle rect, int radius)
         {

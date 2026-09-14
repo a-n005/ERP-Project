@@ -487,7 +487,7 @@ namespace Acc_Trede_winForms.Models.CMessageBox
             }
         }
 
-        public static DialogResult Show(string title, string message, bool showCancel = true,
+        private static DialogResult Show(string title, string message, bool showCancel = true,
             Color? okColor = null, Color? topAccentColor = null, Image okIcon = null, Image cancelIcon = null)
         {
             using (var msg = new CMsgBox(title, message, showCancel))

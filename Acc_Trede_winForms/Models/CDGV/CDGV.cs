@@ -25,6 +25,24 @@ namespace Acc_Trede_winForms.Models.CDGV
         public int Count => this.Grid.Rows.Count;
 
 
+        private Point hoveredSpinnerCell = new Point(-1, -1);
+        private SpinnerZone hoveredSpinnerZone = SpinnerZone.None;
+        private Point lastArrowMouseDownCell = new Point(-1, -1);
+
+        private enum SpinnerZone { None, Up, Down }
+
+        private class SpinnerStyle
+        {
+            public decimal Minimum { get; set; }
+            public decimal Maximum { get; set; }
+            public decimal Increment { get; set; }
+            public int DecimalPlaces { get; set; }
+            public Color ArrowColor { get; set; }
+            public Color ArrowHoverColor { get; set; }
+            public Color SeparatorColor { get; set; }
+            public int ArrowAreaWidth { get; set; } = 20;
+        }
+
         public CDGV()
         {
             InitializeComponents();
@@ -71,6 +89,38 @@ namespace Acc_Trede_winForms.Models.CDGV
 
         #region Dynamic Action Buttons Setup
 
+
+        public DataGridViewTextBoxColumn AddSpinnerColumn(
+            string columnName,
+            string headerText,
+            int index,
+            decimal minimum = 0,
+            decimal maximum = 100000,
+            decimal increment = 1,
+            int decimalPlaces = 0,
+            string dataPropertyName = null)
+        {
+            var col = new DataGridViewTextBoxColumn
+            {
+                Name = columnName,
+                HeaderText = headerText,
+                DataPropertyName = dataPropertyName ?? columnName,
+                Tag = new SpinnerStyle
+                {
+                    Minimum = minimum,
+                    Maximum = maximum,
+                    Increment = increment,
+                    DecimalPlaces = decimalPlaces,
+                    ArrowColor = Color.FromArgb(108, 92, 231),
+                    ArrowHoverColor = Color.FromArgb(141, 129, 240),
+                    SeparatorColor = Color.FromArgb(45, 45, 60),
+
+                }
+            };
+
+            this.Grid.Columns.Insert(index,col);
+            return col;
+        }
         public DataGridViewButtonColumn AddActionButton(
             string columnName,
             string headerText,
@@ -286,6 +336,58 @@ namespace Acc_Trede_winForms.Models.CDGV
 
                 e.Handled = true;
             }
+
+            // 3. رسم النمريك بتن
+            else if (this.Grid.Columns[e.ColumnIndex].Tag is SpinnerStyle spin)
+            {
+                e.Paint(e.CellBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.ContentForeground);
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                bool isRtl = this.Grid.RightToLeft == RightToLeft.Yes;
+                int arrowW = spin.ArrowAreaWidth;
+
+                Rectangle arrowArea = isRtl
+                    ? new Rectangle(e.CellBounds.Left, e.CellBounds.Top, arrowW, e.CellBounds.Height)
+                    : new Rectangle(e.CellBounds.Right - arrowW, e.CellBounds.Top, arrowW, e.CellBounds.Height);
+
+                using (var arrowBgBrush = new SolidBrush(Color.FromArgb(30, 30, 46)))
+                {
+                    e.Graphics.FillRectangle(arrowBgBrush, arrowArea);
+                }
+
+                int halfH = e.CellBounds.Height / 2;
+                Rectangle upRect = new Rectangle(arrowArea.X, e.CellBounds.Top, arrowW, halfH);
+                Rectangle downRect = new Rectangle(arrowArea.X, e.CellBounds.Top + halfH, arrowW, e.CellBounds.Height - halfH);
+
+                bool isHoveredCell = hoveredSpinnerCell.X == e.ColumnIndex && hoveredSpinnerCell.Y == e.RowIndex;
+
+                using (var sepPen = new Pen(spin.SeparatorColor))
+                {
+                    int sepX = isRtl ? arrowArea.Right : arrowArea.Left;
+                    e.Graphics.DrawLine(sepPen, sepX, e.CellBounds.Top, sepX, e.CellBounds.Bottom);
+                    e.Graphics.DrawLine(sepPen, arrowArea.Left, upRect.Bottom, arrowArea.Right, upRect.Bottom);
+                }
+
+                DrawSpinTriangle(e.Graphics, upRect, true,
+                    (isHoveredCell && hoveredSpinnerZone == SpinnerZone.Up) ? spin.ArrowHoverColor : spin.ArrowColor);
+                DrawSpinTriangle(e.Graphics, downRect, false,
+                    (isHoveredCell && hoveredSpinnerZone == SpinnerZone.Down) ? spin.ArrowHoverColor : spin.ArrowColor);
+
+                decimal val = 0;
+                if (e.Value != null && e.Value != DBNull.Value)
+                    decimal.TryParse(e.Value.ToString(), out val);
+
+                string text = val.ToString("F" + spin.DecimalPlaces);
+
+                Rectangle textRect = isRtl
+                    ? new Rectangle(e.CellBounds.X + arrowW, e.CellBounds.Y, e.CellBounds.Width - arrowW, e.CellBounds.Height)
+                    : new Rectangle(e.CellBounds.X, e.CellBounds.Y, e.CellBounds.Width - arrowW, e.CellBounds.Height);
+
+                TextRenderer.DrawText(e.Graphics, text, this.Grid.Font, textRect,  this.Grid.DefaultCellStyle.ForeColor,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+
+                e.Handled = true;
+            }
         }
 
         private GraphicsPath GetRoundedRectanglePath(Rectangle rect, int cornerRadius)
@@ -302,6 +404,32 @@ namespace Acc_Trede_winForms.Models.CDGV
             return path;
         }
 
+        private void DrawSpinTriangle(Graphics g, Rectangle area, bool up, Color color)
+        {
+            const int w = 8, h = 5;
+            int cx = area.X + area.Width / 2;
+            int cy = area.Y + area.Height / 2;
+
+            Point[] pts = up
+                ? new[] { new Point(cx - w / 2, cy + h / 2), new Point(cx + w / 2, cy + h / 2), new Point(cx, cy - h / 2) }
+                : new[] { new Point(cx - w / 2, cy - h / 2), new Point(cx + w / 2, cy - h / 2), new Point(cx, cy + h / 2) };
+
+            using (var brush = new SolidBrush(color))
+                g.FillPolygon(brush, pts);
+        }
+
+        private void StepSpinnerValue(int rowIndex, int columnIndex, SpinnerStyle spin, decimal delta)
+        {
+            var cell = this.Grid.Rows[rowIndex].Cells[columnIndex];
+            decimal current = 0;
+            if (cell.Value != null && cell.Value != DBNull.Value)
+                decimal.TryParse(cell.Value.ToString(), out current);
+
+            decimal next = Math.Max(spin.Minimum, Math.Min(spin.Maximum, current + delta));
+            cell.Value = next;
+            //this.Grid.EndEdit();
+            this.Grid.InvalidateCell(cell);
+        }
         #endregion
 
         #region Dynamic Sorting
@@ -471,8 +599,17 @@ namespace Acc_Trede_winForms.Models.CDGV
                 }
             };
 
+
             this.Grid.MouseWheel += (s, e) =>
             {
+                var hit = this.Grid.HitTest(e.X, e.Y);
+                if (hit.RowIndex >= 0 && hit.ColumnIndex >= 0 &&
+                    this.Grid.Columns[hit.ColumnIndex].Tag is SpinnerStyle spin)
+                {
+                    StepSpinnerValue(hit.RowIndex, hit.ColumnIndex, spin, e.Delta > 0 ? spin.Increment : -spin.Increment);
+                    return; // لا نمرر الحدث لتمرير الصفوف طالما المؤشر فوق خلية سبينر
+                }
+
                 if (!this.CustomScrollBar.Visible) return;
 
                 int lines = e.Delta / 120;
@@ -486,21 +623,57 @@ namespace Acc_Trede_winForms.Models.CDGV
             this.Grid.RowsRemoved += (s, e) => UpdateScrollBar();
             this.Grid.Resize += (s, e) => UpdateScrollBar();
 
-            // معالجة حركة الماوس لمنع الرمشة والتكرار
+
             this.Grid.CellMouseMove += (s, e) =>
             {
-                if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && this.Grid.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+                // التأكد من أن إحداثيات الصف والعمود ضمن الحدود الصحيحة للجدول
+                if (e.RowIndex < 0 || e.RowIndex >= this.Grid.Rows.Count || e.ColumnIndex < 0 || e.ColumnIndex >= this.Grid.Columns.Count)
+                    return;
+
+                // 1. معالجة الـ Hover للأزرار الديناميكية
+                if (this.Grid.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
                 {
                     if (currentHoveredCell.X != e.ColumnIndex || currentHoveredCell.Y != e.RowIndex)
                     {
                         Point oldCell = currentHoveredCell;
                         currentHoveredCell = new Point(e.ColumnIndex, e.RowIndex);
 
-                        if (oldCell.X >= 0 && oldCell.Y >= 0)
+                        if (oldCell.X >= 0 && oldCell.Y >= 0 && oldCell.Y < this.Grid.Rows.Count)
                             this.Grid.InvalidateCell(oldCell.X, oldCell.Y);
 
                         this.Grid.InvalidateCell(e.ColumnIndex, e.RowIndex);
                     }
+                    return;
+                }
+
+                // 2. معالجة الـ Hover للسبينر
+                if (this.Grid.Columns[e.ColumnIndex].Tag is SpinnerStyle spin)
+                {
+                    Rectangle cellRect = this.Grid.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, true);
+                    bool isRtl = this.Grid.RightToLeft == RightToLeft.Yes;
+                    int arrowW = spin.ArrowAreaWidth;
+                    int halfH = cellRect.Height / 2;
+
+                    bool overArrowColumn = isRtl ? e.X <= arrowW : e.X >= cellRect.Width - arrowW;
+
+                    SpinnerZone zone = SpinnerZone.None;
+                    if (overArrowColumn)
+                        zone = e.Y < halfH ? SpinnerZone.Up : SpinnerZone.Down;
+
+                    bool cellChanged = hoveredSpinnerCell.X != e.ColumnIndex || hoveredSpinnerCell.Y != e.RowIndex;
+                    if (cellChanged || zone != hoveredSpinnerZone)
+                    {
+                        Point oldCell = hoveredSpinnerCell;
+                        hoveredSpinnerCell = new Point(e.ColumnIndex, e.RowIndex);
+                        hoveredSpinnerZone = zone;
+
+                        if (oldCell.X >= 0 && oldCell.Y >= 0 && oldCell.Y < this.Grid.Rows.Count)
+                            this.Grid.InvalidateCell(oldCell.X, oldCell.Y);
+
+                        this.Grid.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                    }
+
+                    this.Grid.Cursor = zone != SpinnerZone.None ? Cursors.Hand : Cursors.Default;
                 }
             };
 
@@ -510,7 +683,27 @@ namespace Acc_Trede_winForms.Models.CDGV
                 {
                     Point oldCell = currentHoveredCell;
                     currentHoveredCell = new Point(-1, -1);
-                    this.Grid.InvalidateCell(oldCell.X, oldCell.Y);
+
+                    // التحقق من أن الصف ضمن الحدود الحالية للجدول قبل عمل Invalidate
+                    if (oldCell.Y < this.Grid.Rows.Count && oldCell.X < this.Grid.Columns.Count)
+                    {
+                        this.Grid.InvalidateCell(oldCell.X, oldCell.Y);
+                    }
+                }
+
+                if (hoveredSpinnerCell.X >= 0 && hoveredSpinnerCell.Y >= 0)
+                {
+                    Point oldCell = hoveredSpinnerCell;
+                    hoveredSpinnerCell = new Point(-1, -1);
+                    hoveredSpinnerZone = SpinnerZone.None;
+
+                    // التحقق من أن الصف ضمن الحدود الحالية للجدول قبل عمل Invalidate
+                    if (oldCell.Y < this.Grid.Rows.Count && oldCell.X < this.Grid.Columns.Count)
+                    {
+                        this.Grid.InvalidateCell(oldCell.X, oldCell.Y);
+                    }
+
+                    this.Grid.Cursor = Cursors.Default;
                 }
             };
 
@@ -528,6 +721,38 @@ namespace Acc_Trede_winForms.Models.CDGV
                     this.Grid.Rows[e.RowIndex].Selected = true;
 
                     ActionButtonClick?.Invoke(btnCol.Name, e.RowIndex);
+                    return;
+                }
+
+                if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && this.Grid.Columns[e.ColumnIndex].Tag is SpinnerStyle spin)
+                {
+                    Rectangle cellRect = this.Grid.GetCellDisplayRectangle(e.ColumnIndex, e.RowIndex, true);
+                    bool isRtl = this.Grid.RightToLeft == RightToLeft.Yes;
+                    int arrowW = spin.ArrowAreaWidth;
+                    int halfH = cellRect.Height / 2;
+
+                    bool overArrowColumn = isRtl ? e.X <= arrowW : e.X >= cellRect.Width - arrowW;
+
+                    if (overArrowColumn)
+                    {
+                        lastArrowMouseDownCell = new Point(e.ColumnIndex, e.RowIndex);
+                        decimal delta = e.Y < halfH ? spin.Increment : -spin.Increment;
+                        StepSpinnerValue(e.RowIndex, e.ColumnIndex, spin, delta);
+                    }
+                    else
+                    {
+                        // نقرة على الرقم نفسه (خارج منطقة الأسهم) => اسمح بالدخول لوضع التحرير اليدوي كالمعتاد
+                        lastArrowMouseDownCell = new Point(-1, -1);
+                    }
+                }
+            };
+
+            this.Grid.CellBeginEdit += (s, e) =>
+            {
+
+                if (lastArrowMouseDownCell.X == e.ColumnIndex && lastArrowMouseDownCell.Y == e.RowIndex)
+                {
+                    e.Cancel = true;
                 }
             };
         }
